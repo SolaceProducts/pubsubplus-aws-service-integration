@@ -123,7 +123,7 @@
 		"SecurityGroupStack": {
 			"Type": "AWS::CloudFormation::Stack",
 			"Properties": {
-				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/proxy_securityGroup.template"},
+				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/Security/proxy_securityGroup.template"},
 				"Parameters": {
 					"vpcId": { "Ref" :"VPCID" }
 				}				
@@ -133,7 +133,7 @@
 			"Type": "AWS::CloudFormation::Stack",
 			"DependsOn": ["SecurityGroupStack"],
 			"Properties": {
-				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/proxy_endpoint.template"},
+				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/Security/proxy_endpoint.template"},
 				"Parameters": {
 					"vpcId": { "Ref" :"VPCID" },
 					"subnets": {"Fn::Join": ["," , {"Ref": "SubnetIDs"}]},
@@ -149,7 +149,7 @@
 		"RoleStack": {
 			"Type": "AWS::CloudFormation::Stack",
 			"Properties": {
-				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/proxy_role.template"},
+				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/Security/proxy_role.template"},
 				"Parameters": {
 					"stackName": { "Ref" :"AWS::StackName" },
 					"resourceARN" : {
