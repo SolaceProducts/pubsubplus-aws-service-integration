@@ -1,31 +1,8 @@
 language: ruby
 
-git:
-  submodules: false
-
 env:
   global:
   - AWS_DEFAULT_REGION=us-east-1
-  - MESSAGEBROKERNODEINSTANCETYPE=t2.small
-  
-before_install:
-  - echo "Installing AWS CLI"
-  - pip install --upgrade --user awscli
-  - echo "Installing test gems"
-  - gem install yaml-lint
-  
-install: true
-
-script:
-  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "Cancelling for Pull Requests because secrets are not supported!"; travis_terminate 0; fi'
-  - aws cloudformation validate-template --template-body file://templates/.tnguage: ruby
-
-git:
-  submodules: false
-
-env:
-  global:
-  - AWS_DEFAULT_REGION=eu-west-2
   - MESSAGEBROKERNODEINSTANCETYPE=t2.small
   
 before_install:
@@ -54,6 +31,5 @@ after_success:
   - echo "Cloudformation tested"
   - echo "Messaging tested"
   - if [ "$TRAVIS_BRANCH" = "master" ]; then aws s3 sync . s3://solace-labs/solace-aws-service-integration/latest --acl public-read; fi
-
 
 after_script:
