@@ -239,6 +239,17 @@
 				},
 				"StageName" : "DEVELOPMENT"
 			}
+    	}
+    },
+    "Outputs": {
+        "APIGatewayId": {
+            "Value": {"Ref": "ApiProxyGateway"},
+            "Description": "API Gateway ID",
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-APIGatewayId"
+                }
+            }
+        }
     }
-  }
 }

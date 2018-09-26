@@ -1,0 +1,184 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "This is a master template for creating a API gateway and configuring a Solace VMR to access it",
+	"Metadata": {
+		"AWS::CloudFormation::Interface": {
+			"ParameterGroups": [
+				{
+					"Label": {
+						"default": "Solace Parameters"
+					},
+					"Parameters": [
+						"AdminPassword",
+						"KeyPairName",
+						"NodeInstanceType",
+						"SecurityGroupID",
+						"SubnetID",
+						"VPCID"
+					]
+				},
+				{
+					"Label": {
+						"default": "Resource Parameters"
+					},
+					"Parameters": [
+						"ResourceType",
+						"ResourceARN"
+					]
+				},
+				{
+					"Label": {
+						"default": "AWS Quick Start Configuration"
+					},
+					"Parameters": [
+						"QSS3BucketName",
+						"QSS3KeyPrefix"
+					]
+				}
+			],
+			"ParameterLabels": {
+				"AdminPassword": {
+					"default": "CLI and SEMP SolOS admin password"
+				},
+				"KeyPairName": {
+					"default": "AWS SSH Keypair for access VMR base ec2"
+				},
+				"NodeInstanceType": {
+					"default": "AWS ECS instance type to run VMR"					
+				},
+				"ResourceType": {
+					"default": "The Type of AWS Resources this gateway will proxy"
+				},
+				"ResourceARN": {
+					"default": "The ARN of the resource"
+				},
+				"SecurityGroupID": {
+					"default": "Security Groups for external access"
+				},
+				"SubnetID": {
+                    "default": "Subnets to allow access to API Gateway"
+                },
+                "VPCID": {
+                    "default": "VPC ID to access API Gateway"
+                },
+				"QSS3BucketName": {
+					"default": "Quick Start S3 Bucket Name"
+				},
+				"QSS3KeyPrefix": {
+					"default": "Quick Start S3 Key Prefix"
+				}
+			}
+		}
+	},
+	"Parameters": {
+        "AdminPassword": {
+            "Description": "Require password to access SolOS admin console and SEMP",
+            "Type": "String"
+        },
+		"KeyPairName": {
+            "Description": "Name of an existing EC2 key pair within the AWS region; all instances will launch with this key pair",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+		"NodeInstanceType": {
+            "AllowedValues": [
+                "t2.large",
+                "t2.xlarge",
+                "m3.large",
+                "m3.xlarge",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m4.4xlarge",
+                "c4.xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 instance type.",
+            "Default": "t2.large",
+            "Description": "Instance Type for Solace Message Router. Note: Make sure that your region supports the selected instance type before continuing",
+            "Type": "String"
+		},
+		"ResourceARN": {
+			"Description": "The AWS ARN associated with resource, example arn:sqs:myQueue",
+			"ConstraintDescription": "The ARN of the resource",
+			"Type": "String"
+		},
+		"ResourceType": {
+			"Description": "The resource that this APIGateway will proxy",
+			"ConstraintDescription": "Must be of type from list",
+			"Type": "String",
+			"AllowedValues": [
+				"S3",
+				"SQS",
+				"SNS",
+				"Kinesis",
+				"Lambda"
+			]
+		},
+		"SecurityGroupID": {
+            "Description": "Comma separated list of security groups for the members of the cluster (e.g. sg-7f16e910,sg-4be93ca2); The security groups must be in the same VPC as the subnets",
+            "Type": "AWS::EC2::SecurityGroup::Id"
+		},
+		"SubnetID": {
+            "Description": "Comma separated list of VPC subnet IDs to access API Gateway (e.g. subnet-4b8d329f,subnet-bd73afc8); VPC must exist with proper configuration for Solace cluster access",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+		"VPCID": {
+            "Description": "ID of the VPC (e.g. vpc-0343606e)",
+            "Type": "AWS::EC2::VPC::Id"
+        },
+		"QSS3BucketName": {
+			"AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+			"ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Default": "kbarr",
+			"Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Type": "String"
+		},
+		"QSS3KeyPrefix": {
+			"AllowedPattern": "^[0-9a-zA-Z-/]*$",
+			"ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+			"Default": "apiGateway/CloudFormation",
+			"Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+			"Type": "String"
+		}
+	},
+	"Mappings": {},
+	"Conditions": {},
+	"Resources": {
+		"ApiGatewayStack": {
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/api_proxy.template"},
+				"Parameters": {
+					"ResourceType":   { "Ref" :"ResourceType" },
+					"ResourceARN":    { "Ref" :"ResourceARN" },
+					"SubnetIDs" :     { "Ref" :"SubnetID" },
+					"VPCID":          { "Ref" :"VPCID" },
+					"QSS3BucketName": { "Ref" :"QSS3BucketName" },
+					"QSS3KeyPrefix":  { "Ref" :"QSS3KeyPrefix" }
+				}				
+			}
+		},
+		"SolaceStack": {
+			"Type": "AWS::CloudFormation::Stack",
+			"DependsOn": ["ApiGatewayStack"],
+			"Properties": {
+				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Solace/node_create.template"},
+				"Parameters": {
+					"AdminPassword":    {"Ref" :"AdminPassword"},
+					"ApiGatewayId":		{"Fn::GetAtt": ["ApiGatewayStack","Outputs.APIGatewayId"]},
+					"KeyPairName":      {"Ref" :"KeyPairName"},
+					"NodeInstanceType": {"Ref" :"NodeInstanceType"},
+					"SubnetID":         {"Ref" :"SubnetID"},
+					"NodeSecurityGroup": {"Fn::Join": ["," , 
+						[
+							{"Ref": "SecurityGroupID"},
+							{"Fn::GetAtt": ["ApiGatewayStack","Outputs.SecurityGroupMember"]},
+							{"Fn::GetAtt": ["ApiGatewayStack","Outputs.SecurityGroup"]}
+						]
+					]},
+					"QSS3BucketName": { "Ref" :"QSS3BucketName" },
+					"QSS3KeyPrefix":  { "Ref" :"QSS3KeyPrefix" }
+				}				
+			}
+		}
+	}
+}

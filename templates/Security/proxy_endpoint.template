@@ -4,7 +4,7 @@
     "Parameters": {
       "vpcId": {"Type": "String"},
       "subnets" : {"Type": "List<AWS::EC2::Subnet::Id>"},
-      "securityGroups" : {"Type": "List<String>"}
+      "securityGroups" : {"Type": "List<AWS::EC2::SecurityGroup::Id>"}
     },
     "Mappings": {},
     "Conditions": {},
