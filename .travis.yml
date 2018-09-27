@@ -40,7 +40,7 @@ script:
   - sed -i "s@TRAVIS_S3_PREFIX@$TRAVIS_S3_PREFIX@g" ci/travis-test-sqs.json
   - aws s3 mb s3://$TRAVIS_S3_BUCKET || echo "s3 bucket already existed"
   - aws s3 sync . s3://$TRAVIS_S3_BUCKET/$TRAVIS_S3_PREFIX --acl public-read
-  - export TESTSTACKPREFIX="T$(date +%s)"; export TESTSTACKNAME="$TESTSTACKPREFIX-service-integration";
+  - export TESTSTACKPREFIX="T$(date +%s)"; export TESTSTACKNAME="$TESTSTACKPREFIX-travis";
   - cat ci/travis-test-sqs.json
   - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy+vmr.template --parameters file://ci/travis-test-sqs.json  --disable-rollback --capabilities  CAPABILITY_NAMED_IAM
   - echo "Waiting for stack create complete"
