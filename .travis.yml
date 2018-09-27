@@ -4,7 +4,7 @@ env:
   global:
   - AWS_DEFAULT_REGION=us-east-1
   - NODE_INSTANCE_TYPE=t2.small
-  - TRAVIS_S3_BUCKET=solace-cf-quickstart-travistest
+  - TRAVIS_S3_BUCKET=solace-travis-test
   - TRAVIS_S3_PREFIX=solace-aws-service-integration/latest
   
 before_install:
