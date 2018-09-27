@@ -10,9 +10,9 @@ env:
 before_install:
   - echo "Installing AWS CLI"
   - pip install --upgrade --user awscli
+  - pip install --upgrade --user jq
   - echo "Installing test gems"
   - gem install yaml-lint
-  - require 'json'
 
 install: true
 
