@@ -42,7 +42,9 @@ script:
   - aws s3 mb s3://$TRAVIS_S3_BUCKET || echo "s3 bucket already existed"
   - aws s3 sync . s3://$TRAVIS_S3_BUCKET/$TRAVIS_S3_PREFIX --acl public-read
   - export TESTSTACKPREFIX="T$(date +%s)"; export TESTSTACKNAME="$TESTSTACKPREFIX-service-integration";
+  - cat ci/travis-test-sqs.json
   - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy+vmr.template --parameters file://ci/travis-test-sqs.json --on-failure DELETE --capabilities  CAPABILITY_NAMED_IAM
+  - rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
   - echo "Waiting for stack create complete"
   - "travis_wait 30 sleep 1800 &"
   - until aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS'; do sleep 10; done
