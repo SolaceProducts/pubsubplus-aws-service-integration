@@ -20,21 +20,15 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
 # Initialize our own variables:
 admin_password_file=""
-apiGwId=""
-awsRegion=""
 disk_size=""
 volume=""
 DEBUG="-vvvv"
 
 verbose=0
 
-while getopts "a:p:r:s:v:" opt; do
+while getopts "p:s:v:" opt; do
     case "$opt" in
-    a)  apiGwId=$OPTARG
-        ;;
     p)  admin_password_file=$OPTARG
-        ;;
-    r)  awsRegion=$OPTARG
         ;;
     s)  disk_size=$OPTARG
         ;;
@@ -47,12 +41,11 @@ shift $((OPTIND-1))
 [ "$1" = "--" ] && shift
 
 verbose=1
-echo "apiGwId=${apiGwId} , admin_password_file=$admin_password_file , disk_size=$disk_size , \
-      awsRegion=${awsRegion} ,volume=$volume , Leftovers: $@"
+echo "admin_password_file=$admin_password_file \
+      ,disk_size=$disk_size ,volume=$volume ,Leftovers: $@"
 
 export admin_password=`cat ${admin_password_file}`
-export STAGE="DEVELOPMENT"
-export API_PATH="send"
+
 
 echo "`date` INFO: Set Docker up IPTables and Device Driver"
 service docker stop
@@ -163,64 +156,6 @@ while [ ${count} -lt ${loop_guard} ]; do
   echo "`date` INFO: Waited ${run_time} seconds, VMR SEMP service not yet up"
   sleep ${pause}
 done
-
-echo "`date` INFO: Setting up aws trusted root"
-wget -q -O /var/lib/docker/volumes/jail/_data/certs/AmazonRootCA1.pem -nv https://www.amazontrust.com/repository/AmazonRootCA1.pem
-
-online_results=`/tmp/semp_query.sh -n admin -p ${admin_password} -u http://localhost:8080/SEMP \
-    -q "<rpc semp-version='soltr/8_9VMR'><authentication><create><certificate-authority><ca-name>aws</ca-name></certificate-authority></create></authentication></rpc>" \
-    -v "/rpc-reply/execute-result/@code"`
-ca_created=`echo ${online_results} | jq '.valueSearchResult' -`
-echo "`date` INFO: certificate-authority created status: ${ca_created}"
-
-online_results=`/tmp/semp_query.sh -n admin -p ${admin_password} -u http://localhost:8080/SEMP \
-    -q "<rpc semp-version='soltr/8_9VMR'><authentication><certificate-authority><ca-name>aws</ca-name><certificate><ca-certificate>certs/AmazonRootCA1.pem</ca-certificate></certificate></certificate-authority></authentication></rpc>" \
-    -v "/rpc-reply/execute-result/@code"`
-ca_loaded=`echo ${online_results} | jq '.valueSearchResult' -`
-echo "`date` INFO: certificate-authority file loaded status: ${ca_loaded}"
-
-echo "`date` INFO: Setting up Solace Queue"
-curl --user admin:${admin_password} \
-     --request POST \
-     --header "content-type:application/json" \
-     --data '{"queueName":"aws_service_queue","egressEnabled":true,"ingressEnabled":true,"permission":"delete"}' \
-    "http://localhost:8080/SEMP/v2/config/msgVpns/default/queues"
-
-curl --user admin:${admin_password} \
-     --request POST \
-     --header "content-type:application/json" \
-     --data '{"msgVpnName":"default","queueName":"aws_service_queue","subscriptionTopic":"test/to/aws/service"}' \
-     "http://localhost:8080/SEMP/v2/config/msgVpns/default/queues/aws_service_queue/subscriptions" 
-
-echo "`date` INFO: Setting up Rest Delivery Endpoint"
-curl --user admin:${admin_password} \
-     --request PATCH \
-     --header "content-type:application/json" \
-     --data '{"msgVpnName":"default","restTlsServerCertEnforceTrustedCommonNameEnabled":false}' \
-     "http://localhost:8080/SEMP/v2/config/msgVpns/default"
-
-curl --user admin:${admin_password} \
-     --request POST \
-     --header "content-type:application/json" \
-     --data '{"enabled":true,"msgVpnName":"default","restDeliveryPointName":"aws_service_rpd"}' \
-     "http://localhost:8080/SEMP/v2/config/msgVpns/default/restDeliveryPoints"
-
-curl --user admin:${admin_password} \
-     --request POST \
-     --header "content-type:application/json" \
-     --data "{\"msgVpnName\":\"default\",\"postRequestTarget\":\"${STAGE}/${API_PATH}\",\"queueBindingName\":\"aws_service_queue\",\"restDeliveryPointName\":\"aws_service_rpd\"}" \
-     "http://localhost:8080/SEMP/v2/config/msgVpns/default/restDeliveryPoints/aws_service_rpd/queueBindings"
-
-curl --user admin:${admin_password} \
-     --request POST \
-     --header "content-type:application/json" \
-     --data "{\"enabled\":true,\"msgVpnName\":\"default\",\"remoteHost\":\"${apiGwId}.execute-api.${awsRegion}.amazonaws.com\",\"remotePort\":443,\"restConsumerName\":\"aws_service_rc\",\"tlsEnabled\":true}" \
-     "http://localhost:8080/SEMP/v2/config/msgVpns/default/restDeliveryPoints/aws_service_rpd/restConsumers"
-
-# Remove all VMR Secrets from the host; at this point, the VMR should have come up
-# and it won't be needing those files anymore
-rm ${admin_password_file}
-
 if [ ${count} -eq ${loop_guard} ]; then
   echo "`date` ERROR: Solace VMR SEMP service never came up" | tee /dev/stderr
   exit 1

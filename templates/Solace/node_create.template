@@ -296,6 +296,25 @@
                                 "owner": "root",
                                 "group": "root"
                             },
+                            "/tmp/setup-rdp.sh": {
+                                "source": {
+                                    "Fn::Sub": [
+                                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}/scripts/setup-rdp.sh",
+                                        {
+                                            "QSS3Region": {
+                                                "Fn::If": [
+                                                    "GovCloudCondition",
+                                                    "s3-us-gov-west-1",
+                                                    "s3"
+                                                ]
+                                            }
+                                         }
+                                    ]                         
+                                },
+                                "mode": "000755",
+                                "owner": "root",
+                                "group": "root"
+                            },
                             "/tmp/semp_query.sh": {
                                 "source": {
                                     "Fn::Sub": [
@@ -424,11 +443,31 @@
                                 "cd /tmp\n",
                                 "# Install Solace\n",
                                 "$AMI_SBIN/install-solace.sh ",
-                                "  -a ",{ "Ref": "ApiGatewayId" },
                                 "  -p /mnt/vmr/secrets/solOSpasswd",
-                                "  -r ",{ "Ref": "AWS::Region" },
                                 "  -s ",{ "Ref": "PersistentStorage" },
                                 "  -v /dev/xvdb",
+                                " \n",
+                                "#  Set up send RDP\n",
+                                "$AMI_SBIN/setup-rdp.sh ",
+                                "  -a ",{ "Ref": "ApiGatewayId" },
+                                "  -s DEVELOPMENT",                                
+                                "  -h send",
+                                "  -p /mnt/vmr/secrets/solOSpasswd",
+                                "  -r ",{ "Ref": "AWS::Region" },
+                                " \n",
+                                "$AMI_SBIN/setup-rdp.sh ",
+                                "  -a ",{ "Ref": "ApiGatewayId" },
+                                "  -s DEVELOPMENT",                                
+                                "  -h receive",
+                                "  -p /mnt/vmr/secrets/solOSpasswd",
+                                "  -r ",{ "Ref": "AWS::Region" },
+                                " \n",
+                                "$AMI_SBIN/setup-rdp.sh ",
+                                "  -a ",{ "Ref": "ApiGatewayId" },
+                                "  -s DEVELOPMENT",                                
+                                "  -h delete",
+                                "  -p /mnt/vmr/secrets/solOSpasswd",
+                                "  -r ",{ "Ref": "AWS::Region" },
                                 " \n",
                                 "\n"
                             ]
