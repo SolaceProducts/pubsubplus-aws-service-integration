@@ -45,7 +45,7 @@ script:
   - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy+vmr.template --parameters file://ci/travis-test-sqs.json  --disable-rollback --capabilities  CAPABILITY_NAMED_IAM
   - echo "Waiting for stack create complete"
   - "travis_wait 30 sleep 1800 &"
-  - until aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS'; do sleep 10; done
+  - until aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
   - aws cloudformation describe-stack-events --stack-name $TESTSTACKNAME
   - aws cloudformation describe-stacks --stack-name $TESTSTACKNAME
   - solaceStackName="$(aws cloudformation describe-stack-resource --stack-name $TESTSTACKNAME --logical-resource-id  SolaceStack | grep -oE "$TESTSTACKNAME-SolaceStack-[0-9A-Z]*")"
@@ -66,7 +66,6 @@ after_success:
   - echo "Messaging tested"
   - if [ "$TRAVIS_BRANCH" = "master" ]; then aws s3 sync . s3://solace-labs/$TRAVIS_S3_PREFIX --acl public-read; fi
 
-after_script:
 after_script:
   - aws s3 rb s3://$TRAVIS_S3_BUCKET --force
   - aws cloudformation delete-stack --stack-name $TESTSTACKNAME
