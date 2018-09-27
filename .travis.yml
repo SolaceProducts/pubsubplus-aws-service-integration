@@ -3,7 +3,7 @@ language: ruby
 env:
   global:
   - AWS_DEFAULT_REGION=us-east-1
-  - NODE_INSTANCE_TYPE=t2.small
+  - NODE_INSTANCE_TYPE=t2.large
   - TRAVIS_S3_BUCKET=solace-travis-test
   - TRAVIS_S3_PREFIX=solace-aws-service-integration/latest
   
@@ -30,7 +30,6 @@ script:
   - yaml-lint -n templates/Security
   - yaml-lint -n templates/Solace
   - sed -i "s@SOLOS_PASSWORD@$SOLOS_PASSWORD@g" ci/travis-test-sqs.json
-  - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" ci/travis-test-sqs.json
   - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" ci/travis-test-sqs.json
   - sed -i "s@NODE_INSTANCE_TYPE@$NODE_INSTANCE_TYPE@g" ci/travis-test-sqs.json
   - sed -i "s@SQS_ARN@$SQS_ARN@g" ci/travis-test-sqs.json

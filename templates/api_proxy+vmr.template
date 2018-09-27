@@ -181,7 +181,7 @@
 			}
 		}
 	},
-	"outputs": {
+	"Outputs": {
 		"EC2Id": {
 			"Value": {"Fn::GetAtt": ["SolaceStack","Outputs.EC2ID"]},
             "Description": "EC2 Id of the node running the VMR",
