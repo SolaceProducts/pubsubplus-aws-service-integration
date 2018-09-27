@@ -29,16 +29,16 @@ script:
   - yaml-lint -n templates/Services
   - yaml-lint -n templates/Security
   - yaml-lint -n templates/Solace
-  - sed -i "s@SOLOS_PASSWORD@$SOLOS_PASSWORD@g" ci/travis-test-sqs.yaml
-  - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" ci/travis-test-sqs.yaml
-  - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" ci/travis-test-sqs.yaml
-  - sed -i "s@NODE_INSTANCE_TYPE@$NODE_INSTANCE_TYPE@g" ci/travis-test-sqs.yaml
-  - sed -i "s@SQS_ARN@$SQS_ARN@g" ci/travis-test-sqs.yaml
-  - sed -i "s@TEST_SECURITY_GROUP_ID@$TEST_SECURITY_GROUP_ID@g" ci/travis-test-sqs.yaml
-  - sed -i "s@TEST_SUBNET_ID@$TEST_SUBNET_ID@g" ci/travis-test-sqs.yaml
-  - sed -i "s@TEST_VPC_ID@$TEST_VPC_ID@g" ci/travis-test-sqs.yaml
-  - sed -i "s@TRAVIS_S3_BUCKET@$TRAVIS_S3_BUCKET@g" ci/travis-test-sqs.yaml
-  - sed -i "s@TRAVIS_S3_PREFIX@$TRAVIS_S3_PREFIX@g" ci/travis-test-sqs.yaml
+  - sed -i "s@SOLOS_PASSWORD@$SOLOS_PASSWORD@g" ci/travis-test-sqs.json
+  - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" ci/travis-test-sqs.json
+  - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" ci/travis-test-sqs.json
+  - sed -i "s@NODE_INSTANCE_TYPE@$NODE_INSTANCE_TYPE@g" ci/travis-test-sqs.json
+  - sed -i "s@SQS_ARN@$SQS_ARN@g" ci/travis-test-sqs.json
+  - sed -i "s@TEST_SECURITY_GROUP_ID@$TEST_SECURITY_GROUP_ID@g" ci/travis-test-sqs.json
+  - sed -i "s@TEST_SUBNET_ID@$TEST_SUBNET_ID@g" ci/travis-test-sqs.json
+  - sed -i "s@TEST_VPC_ID@$TEST_VPC_ID@g" ci/travis-test-sqs.json
+  - sed -i "s@TRAVIS_S3_BUCKET@$TRAVIS_S3_BUCKET@g" ci/travis-test-sqs.json
+  - sed -i "s@TRAVIS_S3_PREFIX@$TRAVIS_S3_PREFIX@g" ci/travis-test-sqs.json
   - aws s3 mb s3://$TRAVIS_S3_BUCKET || echo "s3 bucket already existed"
   - aws s3 sync . s3://$TRAVIS_S3_BUCKET/$TRAVIS_S3_PREFIX --acl public-read
   - export TESTSTACKPREFIX="T$(date +%s)"; export TESTSTACKNAME="$TESTSTACKPREFIX-service-integration";
@@ -48,13 +48,11 @@ script:
   - until aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS'; do sleep 10; done
   - aws cloudformation describe-stack-events --stack-name $TESTSTACKNAME
   - aws cloudformation describe-stacks --stack-name $TESTSTACKNAME
-  - solaceStack="$(aws cloudformation describe-stack-resource --stack-name $TESTSTACKNAME --logical-resource-id  SolaceStack | grep -oE "$TESTSTACKNAME-SolaceStack-[0-9A-Z]*")"
-  - solaceStackJson="$(aws cloudformation describe-stack-resource --stack-name ${solaceStack}  --logical-resource-id NodeLaunchConfig)"
-  - solaceStackJsonObject=JSON.parse(solaceStackJson)
-  - instanceId = solaceStackJsonObject['StackResourceDetail']['PhysicalResourceId'] 
-  - instance="$(aws ec2 describe-instances --region us-east-1 --instance-ids $instanceId)"
-  - instance_json = JSON.parse(instance)
-  - dns = instance_json['Reservations'][0]['Instances'][0]['NetworkInterfaces'][0]['Association']['PublicDnsName']
+  - solaceStackName="$(aws cloudformation describe-stack-resource --stack-name $TESTSTACKNAME --logical-resource-id  SolaceStack | grep -oE "$TESTSTACKNAME-SolaceStack-[0-9A-Z]*")"
+  - solaceStackJson="$(aws cloudformation describe-stack-resource --stack-name $solaceStackName  --logical-resource-id NodeLaunchConfig)"
+  - instanceId="$(jq '.StackResourceDetail.PhysicalResourceId' <<< $solaceStackJson)"
+  - instanceInfo="$(aws ec2 describe-instances --region us-east-1 --instance-ids $instanceId)"
+  - dns="$(jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Association.PublicDnsName' <<< $instanceInfo)"
   - echo $dns
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
