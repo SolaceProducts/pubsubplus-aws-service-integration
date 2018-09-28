@@ -41,8 +41,7 @@ script:
   - aws s3 mb s3://$TRAVIS_S3_BUCKET || echo "s3 bucket already existed"
   - aws s3 sync . s3://$TRAVIS_S3_BUCKET/$TRAVIS_S3_PREFIX --acl public-read
   - export TESTSTACKPREFIX="T$(date +%s)"; export TESTSTACKNAME="$TESTSTACKPREFIX-travis";
-  - cat ci/travis-test-sqs.json
-  - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy+vmr.template --parameters file://ci/travis-test-sqs.json  --disable-rollback --capabilities  CAPABILITY_NAMED_IAM
+  - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy+vmr.template --parameters file://ci/travis-test-sqs.json  --on-failure DELETE --capabilities  CAPABILITY_NAMED_IAM
   - echo "Waiting for stack create complete"
   - "travis_wait 30 sleep 1800 &"
   - until aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
@@ -56,16 +55,17 @@ script:
   - echo $dns
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
-  - pubSubTools/sdkperf_c -cip=${dns//\"} \
-                          -ptl=test/send/aws/service \
-                          -mr=1 -mn=1 -md
-  - pubSubTools/sdkperf_c -cip=${dns//\"} \
-                          -stl=test/reply/aws/service \
-                          -ptl=test/receive/aws/service -prs=test/reply/aws/service \
-                          -mr=1 -mn=1 -md
-   - pubSubTools/sdkperf_c -cip=${dns//\"} \
-                          -ptl=test/delete/aws/service \
-                          -mr=1 -mn=1 -md                         
+
+  - if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then
+  - pubSubTools/sdkperf_c -cip=${dns//\"} -ptl=solace-aws-service-integration/send -mr=1 -mn=1 -msa=10 -md
+  - pubSubTools/sdkperf_c -cip=${dns//\"} -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
+  - pubSubTools/sdkperf_c -cip=${dns//\"} -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -md
+  - else if  [ "$TEST_RESOURCE_TYPE" = "Lambda" ]; then
+  - echo {"a":1,"b":2,"op":"+"} > request.file
+  - pubSubTools/sdkperf_c -cip=${dns//\"} -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
+  - fi
+
+
 
 after_success:
   - echo "Test Success - Branch($TRAVIS_BRANCH) Pull Request($TRAVIS_PULL_REQUEST) Tag($TRAVIS_TAG)"
@@ -76,8 +76,8 @@ after_success:
   - if [ "$TRAVIS_BRANCH" = "master" ]; then aws s3 sync . s3://solace-labs/$TRAVIS_S3_PREFIX --acl public-read; fi
 
 after_script:
-  #- aws s3 rb s3://$TRAVIS_S3_BUCKET --force
-  #- aws cloudformation delete-stack --stack-name $TESTSTACKNAME
-  #- echo "Waiting for stack delete complete"
-  #- stackid="$(aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep StackId | awk -F '"' '{print $4}')"
-  #- if [ -n "$stackid" ]; then until aws cloudformation describe-stacks --stack-name $stackid | grep -m 1 "DELETE_COMPLETE"; do sleep 10; done; fi
+  - aws s3 rb s3://$TRAVIS_S3_BUCKET --force
+  - aws cloudformation delete-stack --stack-name $TESTSTACKNAME
+  - echo "Waiting for stack delete complete"
+  - stackid="$(aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep StackId | awk -F '"' '{print $4}')"
+  - if [ -n "$stackid" ]; then until aws cloudformation describe-stacks --stack-name $stackid | grep -m 1 "DELETE_COMPLETE"; do sleep 10; done; fi

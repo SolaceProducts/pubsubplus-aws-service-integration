@@ -77,7 +77,7 @@ curl --user admin:${admin_password} \
 curl --user admin:${admin_password} \
      --request POST \
      --header "content-type:application/json" \
-     --data "{\"msgVpnName\":\"default\",\"queueName\":\"aws_service_${apiPath}_queue\",\"subscriptionTopic\":\"test/${apiPath}/aws/service\"}" \
+     --data "{\"msgVpnName\":\"default\",\"queueName\":\"aws_service_${apiPath}_queue\",\"subscriptionTopic\":\"solace-aws-service-integration/${apiPath}\"}" \
      "http://localhost:8080/SEMP/v2/config/msgVpns/default/queues/aws_service_${apiPath}_queue/subscriptions" 
 
 echo "`date` INFO: Setting up Rest Delivery Endpoint"
