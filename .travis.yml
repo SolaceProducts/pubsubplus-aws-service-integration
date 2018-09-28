@@ -17,6 +17,8 @@ before_install:
 install: true
 
 script:
+  - if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then export TRAVIS_TEST_FILE=ci/travis-test-sqs.json; fi
+  - if [ "$TEST_RESOURCE_TYPE" = "Lambda" ]; then export TRAVIS_TEST_FILE=ci/travis-test-lambda.json; fi
   - aws cloudformation validate-template --template-body file://templates/api_proxy.template
   - aws cloudformation validate-template --template-body file://templates/Security/proxy_endpoint.template
   - aws cloudformation validate-template --template-body file://templates/Security/proxy_role.template
@@ -29,19 +31,19 @@ script:
   - yaml-lint -n templates/Services
   - yaml-lint -n templates/Security
   - yaml-lint -n templates/Solace
-  - sed -i "s@SOLOS_PASSWORD@$SOLOS_PASSWORD@g" ci/travis-test-sqs.json
-  - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" ci/travis-test-sqs.json
-  - sed -i "s@NODE_INSTANCE_TYPE@$NODE_INSTANCE_TYPE@g" ci/travis-test-sqs.json
-  - sed -i "s@SQS_ARN@$SQS_ARN@g" ci/travis-test-sqs.json
-  - sed -i "s@TEST_SECURITY_GROUP_ID@$TEST_SECURITY_GROUP_ID@g" ci/travis-test-sqs.json
-  - sed -i "s@TEST_SUBNET_ID@$TEST_SUBNET_ID@g" ci/travis-test-sqs.json
-  - sed -i "s@TEST_VPC_ID@$TEST_VPC_ID@g" ci/travis-test-sqs.json
-  - sed -i "s@TRAVIS_S3_BUCKET@$TRAVIS_S3_BUCKET@g" ci/travis-test-sqs.json
-  - sed -i "s@TRAVIS_S3_PREFIX@$TRAVIS_S3_PREFIX@g" ci/travis-test-sqs.json
+  - sed -i "s@SOLOS_PASSWORD@$SOLOS_PASSWORD@g" $TRAVIS_TEST_FILE
+  - sed -i "s@TEST_KEYPAIR@$TEST_KEYPAIR@g" $TRAVIS_TEST_FILE
+  - sed -i "s@NODE_INSTANCE_TYPE@$NODE_INSTANCE_TYPE@g" $TRAVIS_TEST_FILE
+  - sed -i "s@SQS_ARN@$SQS_ARN@g" $TRAVIS_TEST_FILE
+  - sed -i "s@TEST_SECURITY_GROUP_ID@$TEST_SECURITY_GROUP_ID@g" $TRAVIS_TEST_FILE
+  - sed -i "s@TEST_SUBNET_ID@$TEST_SUBNET_ID@g" $TRAVIS_TEST_FILE
+  - sed -i "s@TEST_VPC_ID@$TEST_VPC_ID@g" $TRAVIS_TEST_FILE
+  - sed -i "s@TRAVIS_S3_BUCKET@$TRAVIS_S3_BUCKET@g" $TRAVIS_TEST_FILE
+  - sed -i "s@TRAVIS_S3_PREFIX@$TRAVIS_S3_PREFIX@g" $TRAVIS_TEST_FILE
   - aws s3 mb s3://$TRAVIS_S3_BUCKET || echo "s3 bucket already existed"
   - aws s3 sync . s3://$TRAVIS_S3_BUCKET/$TRAVIS_S3_PREFIX --acl public-read
   - export TESTSTACKPREFIX="T$(date +%s)"; export TESTSTACKNAME="$TESTSTACKPREFIX-travis";
-  - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy+vmr.template --parameters file://ci/travis-test-sqs.json  --on-failure DELETE --capabilities  CAPABILITY_NAMED_IAM
+  - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy+vmr.template --parameters file://$TRAVIS_TEST_FILE  --on-failure DELETE --capabilities  CAPABILITY_NAMED_IAM
   - echo "Waiting for stack create complete"
   - "travis_wait 30 sleep 1800 &"
   - until aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
@@ -52,21 +54,19 @@ script:
   - instanceId="$(jq '.StackResourceDetail.PhysicalResourceId' <<< $solaceStackJson)"
   - instanceInfo="$(aws ec2 describe-instances --region us-east-1 --instance-ids ${instanceId//\"} )"
   - dns="$(jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Association.PublicDnsName' <<< $instanceInfo)"
-  - echo $dns
+  - dns=${dns//\"}
+  - echo "DNS=**${dns}**"
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
-
-  - if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then
-  - pubSubTools/sdkperf_c -cip=${dns//\"} -ptl=solace-aws-service-integration/send -mr=1 -mn=1 -msa=10 -md
-  - pubSubTools/sdkperf_c -cip=${dns//\"} -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
-  - pubSubTools/sdkperf_c -cip=${dns//\"} -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -md
-  - else if  [ "$TEST_RESOURCE_TYPE" = "Lambda" ]; then
-  - echo {"a":1,"b":2,"op":"+"} > request.file
-  - pubSubTools/sdkperf_c -cip=${dns//\"} -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
-  - fi
-
-
-
+  - |
+    if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then
+    pubSubTools/sdkperf_c -cip="${dns}" -ptl=solace-aws-service-integration/send -mr=1 -mn=1 -msa=10 -md
+    pubSubTools/sdkperf_c -cip="${dns}" -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
+    pubSubTools/sdkperf_c -cip="${dns}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -md
+    else if  [ "$TEST_RESOURCE_TYPE" = "Lambda" ]; then
+    echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
+    pubSubTools/sdkperf_c -cip="${dns}" -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
+    fi
 after_success:
   - echo "Test Success - Branch($TRAVIS_BRANCH) Pull Request($TRAVIS_PULL_REQUEST) Tag($TRAVIS_TAG)"
   - echo "Cloudformation templates validated"
