@@ -5,7 +5,7 @@ env:
   - AWS_DEFAULT_REGION=us-east-1
   - NODE_INSTANCE_TYPE=t2.large
   - TRAVIS_S3_BUCKET=solace-travis-test
-  - TRAVIS_S3_PREFIX=solace-aws-service-integration/latest
+  - TRAVIS_S3_PREFIX=solace-aws-service-integration
   
 before_install:
   - echo "Installing AWS CLI"
@@ -56,7 +56,16 @@ script:
   - echo $dns
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
-  - pubSubTools/sdkperf_c -cip=$dns -mn=100000 -mr=0 -ptl=t1 -stl=t1 | grep "Total Messages"
+  - pubSubTools/sdkperf_c -cip=${dns//\"} \
+                          -ptl=test/send/aws/service \
+                          -mr=1 -mn=1 -md
+  - pubSubTools/sdkperf_c -cip=${dns//\"} \
+                          -stl=test/reply/aws/service \
+                          -ptl=test/receive/aws/service -prs=test/reply/aws/service \
+                          -mr=1 -mn=1 -md
+   - pubSubTools/sdkperf_c -cip=${dns//\"} \
+                          -ptl=test/delete/aws/service \
+                          -mr=1 -mn=1 -md                         
 
 after_success:
   - echo "Test Success - Branch($TRAVIS_BRANCH) Pull Request($TRAVIS_PULL_REQUEST) Tag($TRAVIS_TAG)"
@@ -67,8 +76,8 @@ after_success:
   - if [ "$TRAVIS_BRANCH" = "master" ]; then aws s3 sync . s3://solace-labs/$TRAVIS_S3_PREFIX --acl public-read; fi
 
 after_script:
-  - aws s3 rb s3://$TRAVIS_S3_BUCKET --force
-  - aws cloudformation delete-stack --stack-name $TESTSTACKNAME
-  - echo "Waiting for stack delete complete"
-  - stackid="$(aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep StackId | awk -F '"' '{print $4}')"
-  - if [ -n "$stackid" ]; then until aws cloudformation describe-stacks --stack-name $stackid | grep -m 1 "DELETE_COMPLETE"; do sleep 10; done; fi
+  #- aws s3 rb s3://$TRAVIS_S3_BUCKET --force
+  #- aws cloudformation delete-stack --stack-name $TESTSTACKNAME
+  #- echo "Waiting for stack delete complete"
+  #- stackid="$(aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep StackId | awk -F '"' '{print $4}')"
+  #- if [ -n "$stackid" ]; then until aws cloudformation describe-stacks --stack-name $stackid | grep -m 1 "DELETE_COMPLETE"; do sleep 10; done; fi
