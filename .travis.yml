@@ -51,7 +51,7 @@ script:
   - solaceStackName="$(aws cloudformation describe-stack-resource --stack-name $TESTSTACKNAME --logical-resource-id  SolaceStack | grep -oE "$TESTSTACKNAME-SolaceStack-[0-9A-Z]*")"
   - solaceStackJson="$(aws cloudformation describe-stack-resource --stack-name $solaceStackName  --logical-resource-id NodeLaunchConfig)"
   - instanceId="$(jq '.StackResourceDetail.PhysicalResourceId' <<< $solaceStackJson)"
-  - instanceInfo="$(aws ec2 describe-instances --region us-east-1 --instance-ids $instanceId )"
+  - instanceInfo="$(aws ec2 describe-instances --region us-east-1 --instance-ids ${instanceId//\"} )"
   - dns="$(jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Association.PublicDnsName' <<< $instanceInfo)"
   - echo $dns
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
