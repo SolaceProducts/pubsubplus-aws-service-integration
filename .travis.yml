@@ -1,4 +1,6 @@
-language: ruby
+language: python 
+python: 
+  - "2.7" 
 
 env:
   global:
@@ -9,9 +11,11 @@ env:
   
 before_install:
   - echo "Installing AWS CLI"
-  - pip install --upgrade --user awscli
-  - pip install --upgrade --user jq
+  - pip install --upgrade awscli
+  - pip install --upgrade jq
   - echo "Installing test gems"
+  - sudo apt-get install build-essential 
+  - ruby -v 
   - gem install yaml-lint
 
 install: true
@@ -55,20 +59,22 @@ script:
   - solaceStackJson="$(aws cloudformation describe-stack-resource --stack-name $solaceStackName  --logical-resource-id NodeLaunchConfig)"
   - instanceId="$(jq '.StackResourceDetail.PhysicalResourceId' <<< $solaceStackJson)"
   - instanceInfo="$(aws ec2 describe-instances --region us-east-1 --instance-ids ${instanceId//\"} )"
-  - dns="$(jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Association.PublicDnsName' <<< $instanceInfo)"
-  - dns=${dns//\"}
-  - echo "DNS=**${dns}**"
+  - publicIp="$(jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Association.PublicIp' <<< $instanceInfo)"
+  - publicIp=${publicIp//\"}
+  - echo "PublicIp=**${publicIp}**"
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
-  - |
-    if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then
-    pubSubTools/sdkperf_c -cip="${dns}" -ptl=solace-aws-service-integration/send -mr=1 -mn=1 -msa=10 -md
-    pubSubTools/sdkperf_c -cip="${dns}" -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
-    pubSubTools/sdkperf_c -cip="${dns}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -md
-    elif  [ "$TEST_RESOURCE_TYPE" = "Lambda" ]; then
-    echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
-    pubSubTools/sdkperf_c -cip="${dns}" -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
-    fi
+  - echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
+  - pubSubTools/sdkperf_c -cip="${publicIp}" -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
+ # - |
+ #   if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then
+ #   pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/send -mr=1 -mn=1 -msa=10 -md
+ #   pubSubTools/sdkperf_c -cip="${publicIp}" -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
+ #   pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -md
+ #   elif  [ "$TEST_RESOURCE_TYPE" = "Lambda" ]; then
+ #   echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
+ #   pubSubTools/sdkperf_c -cip="${publicIp}" -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
+ #   fi
 
 after_success:
   - echo "Test Success - Branch($TRAVIS_BRANCH) Pull Request($TRAVIS_PULL_REQUEST) Tag($TRAVIS_TAG)"

@@ -193,7 +193,7 @@
 						{ "Fn::Select" : [ "4", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}]},
 						":function:",
 						{ "Fn::Select" : [ "6", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}]},
-						"/invocation"]]},
+						"/invocations"]]},
 					 "JSONTemplate" : "$input.json('$')",
 					 "OctelStreamTemplate" : "$input.body",
 					 "DeleteTemplate" : ""
