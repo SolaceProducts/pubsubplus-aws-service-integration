@@ -142,13 +142,9 @@ pause=10
 count=0
 echo "`date` INFO: Wait for the VMR SEMP service to be enabled"
 while [ ${count} -lt ${loop_guard} ]; do
-  online_results=`/tmp/semp_query.sh -n admin -p ${admin_password} -u http://localhost:8080/SEMP \
-    -q "<rpc semp-version='soltr/8_9VMR'><show><service/></show></rpc>" \
-    -v "/rpc-reply/rpc/show/service/services/service[name='SEMP']/enabled[text()]"`
-  is_vmr_up=`echo ${online_results} | jq '.valueSearchResult' -`
-  echo "`date` INFO: SEMP service 'enabled' status is: ${is_vmr_up}"
+  health_result=`curl -s -o /dev/null -w "%{http_code}"  http://localhost:5550/health-check/guaranteed-active`
   run_time=$((${count} * ${pause}))
-  if [ "${is_vmr_up}" = "\"true\"" ]; then
+  if [ "${health_result}" = "200" ]; then
       echo "`date` INFO: VMR SEMP service is up, after ${run_time} seconds"
       break
   fi
