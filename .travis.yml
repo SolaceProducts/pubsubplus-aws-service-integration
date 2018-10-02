@@ -5,7 +5,7 @@ python:
 env:
   global:
   - AWS_DEFAULT_REGION=us-east-1
-  - NODE_INSTANCE_TYPE=t2.large
+  - NODE_INSTANCE_TYPE=t2.xlarge
   - TRAVIS_S3_BUCKET=solace-travis-test
   - TRAVIS_S3_PREFIX=solace-aws-service-integration
   
@@ -62,6 +62,7 @@ script:
   - publicIp="$(jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Association.PublicIp' <<< $instanceInfo)"
   - publicIp=${publicIp//\"}
   - echo "PublicIp=**${publicIp}**"
+  - ping -c 5 $publicIp
   - health_result="$(curl -s -o /dev/null -w "%{http_code}"  http://${publicIp}:5550/health-check/guaranteed-active)"
   - if [ "$health_results" != "200" ]; then echo "Health = $health_results"; sleep 30; fi
   - curl -s -o /dev/null -w "%{http_code}"  http://${publicIp}:5550/health-check/guaranteed-active
