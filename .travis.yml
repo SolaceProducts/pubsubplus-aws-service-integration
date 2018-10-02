@@ -62,10 +62,12 @@ script:
   - publicIp="$(jq '.Reservations[0].Instances[0].NetworkInterfaces[0].Association.PublicIp' <<< $instanceInfo)"
   - publicIp=${publicIp//\"}
   - echo "PublicIp=**${publicIp}**"
+  - health_result="$(curl -s -o /dev/null -w "%{http_code}"  http://localhost:5550/health-check/guaranteed-active)"
+  - if [ "$health_results" != "200" ]; then echo "Health = $health_results"; do sleep 15; fi
+  - curl -s -o /dev/null -w "%{http_code}"  http://localhost:5550/health-check/guaranteed-active)
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
   - echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
-  - echo "Pausing to let message spool come up"; sleep 15
   - pubSubTools/sdkperf_c -cip="${publicIp}" -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
  # - |
  #   if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then
