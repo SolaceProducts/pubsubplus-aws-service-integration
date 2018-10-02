@@ -63,8 +63,8 @@ script:
   - publicIp=${publicIp//\"}
   - echo "PublicIp=**${publicIp}**"
   - health_result="$(curl -s -o /dev/null -w "%{http_code}"  http://localhost:5550/health-check/guaranteed-active)"
-  - if [ "$health_results" != "200" ]; then echo "Health = $health_results"; do sleep 15; fi
-  - curl -s -o /dev/null -w "%{http_code}"  http://localhost:5550/health-check/guaranteed-active)
+  - if [ "$health_results" != "200" ]; then echo "Health = $health_results"; sleep 15; fi
+  - curl -s -o /dev/null -w "%{http_code}"  http://localhost:5550/health-check/guaranteed-active
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
   - echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
@@ -89,7 +89,7 @@ after_success:
 
 after_script:
   - aws s3 rb s3://$TRAVIS_S3_BUCKET --force
-  - aws cloudformation delete-stack --stack-name $TESTSTACKNAME
-  - echo "Waiting for stack delete complete"
-  - stackid="$(aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep StackId | awk -F '"' '{print $4}')"
-  - if [ -n "$stackid" ]; then until aws cloudformation describe-stacks --stack-name $stackid | grep -m 1 "DELETE_COMPLETE"; do sleep 10; done; fi
+ # - aws cloudformation delete-stack --stack-name $TESTSTACKNAME
+ # - echo "Waiting for stack delete complete"
+ # - stackid="$(aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep StackId | awk -F '"' '{print $4}')"
+ # - if [ -n "$stackid" ]; then until aws cloudformation describe-stacks --stack-name $stackid | grep -m 1 "DELETE_COMPLETE"; do sleep 10; done; fi
