@@ -63,9 +63,8 @@ script:
   - publicIp=${publicIp//\"}
   - echo "PublicIp=**${publicIp}**"
   - ping -c 5 $publicIp
-  - health_result="$(curl -s -o /dev/null -w "%{http_code}"  http://${publicIp}:5550/health-check/guaranteed-active)"
-  - if [ "$health_results" != "200" ]; then echo "Health = $health_results"; sleep 30; fi
-  - curl -s -o /dev/null -w "%{http_code}"  http://${publicIp}:5550/health-check/guaranteed-active
+  - health_check="000"
+  - while [ $health_check -ne 200 ]; do health_check="$(curl -s -o /dev/null -w "%{http_code}"  http://${publicIp}:5550/health-check/guaranteed-active)"; sleep 10; echo "`date` Health=${health_check}"; done
   - curl -O https://sftp.solace.com/download/SDKPERF_C_LINUX64
   - tar -xvf SDKPERF_C_LINUX64
   - echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
