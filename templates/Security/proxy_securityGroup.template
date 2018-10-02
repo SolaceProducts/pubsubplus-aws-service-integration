@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "CloudFormation template to create a VPC Endpoint for use with API Gateway",
+    "Description": "CloudFormation template to create a Security Group to isolate ingress to API Gateway",
     "Parameters": {
       "vpcId": {"Type": "String"}
     },
