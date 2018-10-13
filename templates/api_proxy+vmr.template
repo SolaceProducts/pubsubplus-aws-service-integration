@@ -168,6 +168,7 @@
 					"KeyPairName":      {"Ref" :"KeyPairName"},
 					"NodeInstanceType": {"Ref" :"NodeInstanceType"},
 					"SubnetID":         {"Ref" :"SubnetID"},
+					"ParentStackName":  {"Ref": "AWS::StackName"},
 					"NodeSecurityGroup": {"Fn::Join": ["," , 
 						[
 							{"Ref": "SecurityGroupID"},

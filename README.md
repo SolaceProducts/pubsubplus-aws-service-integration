@@ -80,7 +80,7 @@ Below is the list of AWS resources that will be deployed by the Quick Start. Ple
 The solution is deployed via Cloud Formation templates.   It can either deploy the entire solution including Solace message broker and configure the rest delivery endpoints, set up the security group and endpoint as well as the APIGateway. Or, just deploy the AWS components and allow the administrator to configure an existing Solace message broker.
 
 
-Deploying APIGateway components only.
+Deploying APIGateway components only                      .
 <a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Solace-ApiGW&templateURL=https://s3.amazonaws.com/solace-labs/solace-aws-service-integration/latest/templates/api_proxy.template" target="_blank">
     <img src="/images/launch-button-existing.png"/>
 </a>
@@ -134,7 +134,7 @@ The expected message pattern might be to send messages to a SQS queue and receiv
 2.  Poll an SQS queue for messages eligible for delivery and receive these messages.
 3.  Delete each delivered message that has been successfully consumed.
 
-If a message has been delivered but not yet deleted it moved from eligible for deliver to in-flight.  From here it can either be explicitly deleted with a delete message or moved back to eligible for delivery after deltee timeout, which is by default 15 seconds.
+If a message has been delivered but not yet deleted it moved from eligible for deliver to in-flight.  From here it can either be explicitly deleted with a delete message or moved back to eligible for delivery after delete timeout, which is by default 15 seconds.
 
 When sending and recieving messages to/from an SQS queue, you will need an existing queue.  The ARN for the queue can be found from the AWS console by looking at the SQS queue details and will be of the form:
 
@@ -142,7 +142,7 @@ When sending and recieving messages to/from an SQS queue, you will need an exist
 
 When sending messages that would go to the SQS queue, the binary attachment of the message will be sent AWS queue. Custom headers will not be passed to SQS.
 
-When receiving messages from SQS queue, a request/reply pattern should be used if the sending protocol supports it.  The reply will include the message payload, message payload MD5 and the receiptID.  This receiptID needs to be the only element in the delete message body and needs to be sent within 15 seconds of the initial delivery or the message will be re-queued within SQS for delivery.  If the receiving protocol does not support request/reply, then a monitor application can async receive data generated from the polling and subsequently delete it.
+When receiving messages from SQS queue, a request/reply pattern should be used if the sending protocol supports it.  The reply will include the message payload, message payload MD5 and the ReceiptHandle.  This ReceiptHandle needs to be the only element in the delete message body and needs to be sent within 15 seconds of the initial delivery or the message will be re-queued within SQS for delivery.  If the receiving protocol does not support request/reply, then a monitor application can async receive data generated from the polling and subsequently delete it.
 
 Here is an example exchange pattern:
 
@@ -152,9 +152,8 @@ Here is an example exchange pattern:
     Receive Message
     pubSubTools/sdkperf_c -cip="${publicIp}" -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
 
-    Extract the ReceiptId from the received message receiptId and delete from queue
-    pubSubTools/sdkperf_c -cip="${publicIp}" 
-    -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -pal receiptId
+    Extract the ReceiptHandle from the received message ReceiptHandle and delete from queue
+    pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -pal ReceiptHandle
 
 
 ### Deploying S3 solution

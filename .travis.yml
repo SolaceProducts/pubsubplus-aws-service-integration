@@ -72,8 +72,18 @@ script:
  # - |
  #   if [ "$TEST_RESOURCE_TYPE" = "SQS" ]; then
  #   pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/send -mr=1 -mn=1 -msa=10 -md
- #   pubSubTools/sdkperf_c -cip="${publicIp}" -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
- #   pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -md
+ #   pubSubTools/sdkperf_c -cip="${publicIp}" -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md > result.txt
+ #   csplit result.txt '/^^^^^^^^^^^^^^^^^^^/' '{*}'
+ #   mv xx01 result_msg_hex.txt
+ #   tail -n +8 result_msg_hex.txt > result_msg_hex_trimmed.txt
+ #   cut -c 56- result_msg_hex_trimmed.txt > result_msg_ws.txt
+ #   tr -d ' \t\n\r\f' <result_msg_ws.txt >result_msg.txt
+ #   jq . result_msg.txt
+ #   Print out receiptHandle
+ #   receiptHandle=`jq ."ReceiveMessageResponse.ReceiveMessageResult.messages[].ReceiptHandle" result_msg.txt`
+ #   receiptHandle=${receiptHandle//\"}
+ #   echo ${receiptHandle} > receiptHandle.txt
+ #   pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/delete -pal=receiptHandle.txt -mr=1 -mn=1 -md
  #   elif  [ "$TEST_RESOURCE_TYPE" = "Lambda" ]; then
  #   echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
  #   pubSubTools/sdkperf_c -cip="${publicIp}" -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md

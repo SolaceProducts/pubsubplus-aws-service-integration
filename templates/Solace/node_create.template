@@ -32,6 +32,11 @@
             "Description": "Comma separated list of security groups for the members of the cluster (e.g. sg-7f16e910,sg-4be93ca2); The security groups must be in the same VPC as the subnets",
             "Type": "List<AWS::EC2::SecurityGroup::Id>"
         },
+        "ParentStackName": {
+            "Description": "Wrapper stack for this deployment",
+            "Default": "sol-aws-service-integration",
+            "Type": "String"
+        },
         "PersistentStorage": {
             "ConstraintDescription": "No more than 1024 GB per device (4 TB per node).",
             "Default": "0",
@@ -54,14 +59,14 @@
         "QSS3BucketName": {
             "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
             "ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
-            "Default": "quickstart-reference",
+            "Default": "solace-labs",
             "Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
             "Type": "String"
         },
         "QSS3KeyPrefix": {
             "AllowedPattern": "^[0-9a-zA-Z-/]*$",
             "ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
-            "Default": "solace/vmr/latest/",
+            "Default": "solace-aws-service-integration/latest",
             "Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
             "Type": "String"
         }
@@ -511,6 +516,22 @@
                         "DeviceIndex"         : "0",
                         "GroupSet"            : { "Ref": "NodeSecurityGroup" },
                         "SubnetId"            : { "Ref" : "SubnetID" }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "ParentStackName"
+                                    },
+                                    "MessageRouter"
+                                ]
+                            ]
+                        }
                     }
                 ],
                 "UserData": {
