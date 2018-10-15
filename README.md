@@ -83,7 +83,7 @@ Below is the list of AWS resources that will be deployed by the Quick Start. Ple
 ## Deploying solution
 The solution is deployed via Cloud Formation templates.   It can either deploy the entire solution including Solace message broker and configure the rest delivery endpoints, set up the security group and endpoint as well as the APIGateway. Or, just deploy the AWS components and allow the administrator to configure an existing Solace message broker.  
 
-If you plan on integrating yourself, you will need to take care of loading root certificates and configuring TLS on the message broker to interact with the APIgateway as well as configure the message broker rest delivery endpoints,(RDPs).  See the scripts/setup-rdp.sh file for inspiration on that needs to be done in this regard.  The sript itself is a mix of Solace SEMPv1 and SEMPv2.
+If you plan on integrating yourself, you will need to take care of loading root certificates and configuring TLS on the message broker to interact with the APIgateway as well as configure the message broker rest delivery endpoints,(RDPs).  See the scripts/setup-rdp.sh file for inspiration on that needs to be done in this regard.  The sript itself is a mix of Solace SEMPv1 and SEMPv2.  Also you will need to add your subnets to the VPC endpoint and add the created security groups to your message broker.
 
 
 Deploying APIGateway components only                      .
