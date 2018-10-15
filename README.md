@@ -18,7 +18,9 @@ This AWS integration also eliminates the need for bespoke bridges or gateways th
 
 ![Event Mesh](images/EventMesh.png)
 
-## Usage
+## Design
+
+The overall design is to tightly couple the message brokers to the apiGateway for security reasons.  The apiGateway is internal in nature and coupled to the message broker by subnet and security group.  If you want to make access to this ApiGateway more open, you can deploy the below cloud formation template then manually open up and expand permissions or simply use this repo as insperation to create youe own AWS service interfaces.
 
 ### Detailed Topology Example
 ![Detailed Architecture](images/DetailedArch.png)
@@ -37,6 +39,8 @@ Breaking down the above diagram into its component parts:
 6. IAM Role - Defined within solution. Allows read/write access to the specific downstream resource, can be across accounts.
 
 7. AWS Resource.  In this example an SQS Queue is outside the scope of this solution and is assumed to pre-exist.  API gateway can write to a specific object or read from it.
+
+## Usage
 
 ### Minimum Resource Requirements
 Below is the list of AWS resources that will be deployed by the Quick Start. Please consult the [Amazon VPC Limits](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Appendix_Limits.html ) page and ensure that your AWS region is within the limit range per resource before launching:
@@ -77,7 +81,9 @@ Below is the list of AWS resources that will be deployed by the Quick Start. Ple
     "logs:DeleteLogGroup"
 
 ## Deploying solution
-The solution is deployed via Cloud Formation templates.   It can either deploy the entire solution including Solace message broker and configure the rest delivery endpoints, set up the security group and endpoint as well as the APIGateway. Or, just deploy the AWS components and allow the administrator to configure an existing Solace message broker.
+The solution is deployed via Cloud Formation templates.   It can either deploy the entire solution including Solace message broker and configure the rest delivery endpoints, set up the security group and endpoint as well as the APIGateway. Or, just deploy the AWS components and allow the administrator to configure an existing Solace message broker.  
+
+If you plan on integrating yourself, you will need to take care of loading root certificates and configuring TLS on the message broker to interact with the APIgateway as well as configure the message broker rest delivery endpoints,(RDPs).  See the scripts/setup-rdp.sh file for inspiration on that needs to be done in this regard.  The sript itself is a mix of Solace SEMPv1 and SEMPv2.
 
 
 Deploying APIGateway components only                      .
