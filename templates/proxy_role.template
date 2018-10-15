@@ -1,0 +1,57 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "CloudFormation template to create a IAM role for use with API Gateway",
+    "Parameters": {
+      "stackName": {"Type": "String"},
+      "resourceARN" : {"Type": "String"},
+      "actions" : {"Type": "String"},
+      "vpcId" : {"Type": "String"}
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {  
+        "ApiProxyRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": {
+                    "Fn::Join": ["-", [{"Ref": "stackName"}, "policy"]]},
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Resource": {	"Ref": "resourceARN"},
+                            "Action":  {"Fn::Split" : [ " " , {"Ref": "actions"} ]}
+                        }]
+                    }
+                }],
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                            {
+                                "Sid": "",
+                                "Action": [ "sts:AssumeRole" ],
+                                "Principal": { "Service": [ "apigateway.amazonaws.com" ] },
+                                "Effect": "Allow"
+                            }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "RoleName": {"Fn::Join": ["-", [{"Ref": "stackName"}, "role"]]}
+            }
+        }
+    },
+    "Outputs": {
+        "ARN": {
+            "Value": {
+                "Fn::GetAtt": ["ApiProxyRole","Arn"]
+            },
+            "Description": "Role ARN",
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-ARN"
+                }
+            }
+        }
+    }
+}

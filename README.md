@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SolaceLabs/solace-aws-service-integration.svg?branch=development)](https://travis-ci.org/SolaceLabs/solace-aws-service-integration)
+[![Build Status](https://travis-ci.org/SolaceLabs/solace-aws-service-integration.svg?branch=master)](https://travis-ci.org/SolaceLabs/solace-aws-service-integration)
 
 # solace-aws-service-integration 
 
