@@ -1,0 +1,35 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "CloudFormation template to create a VPC Endpoint for use with API Gateway",
+    "Parameters": {
+      "vpcId": {"Type": "String"},
+      "subnets" : {"Type": "List<AWS::EC2::Subnet::Id>"},
+      "securityGroups" : {"Type": "List<AWS::EC2::SecurityGroup::Id>"}
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {  
+        "ApiEndpoint": {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+              "VpcId" : {"Ref": "vpcId"},
+              "ServiceName": {"Fn::Join": [".", ["com.amazonaws", {"Ref": "AWS::Region"}, "execute-api"]]},
+              "VpcEndpointType" : "Interface",
+              "PrivateDnsEnabled" : true,
+              "SubnetIds" : {"Ref": "subnets"},
+              "SecurityGroupIds" : {"Ref": "securityGroups"}
+            }
+        }
+    },
+    "Outputs": {
+        "Endpoint": {
+            "Value": {"Ref": "ApiEndpoint"},
+            "Description": "API Gateway Endoint",
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-Endpoint"
+                }
+            }
+        }
+    }
+}
