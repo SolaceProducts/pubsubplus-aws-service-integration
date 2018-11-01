@@ -231,7 +231,13 @@
 									},
 									"requestParameters": {
 										"integration.request.path.object": "method.request.header.Solace-Message-ID",
-										"integration.request.path.bucket": {"Fn::Join": [ "", "'",{ "Fn::Select" : [ "0", { "Fn::Split": ["/", {"Ref" : "ResourceURL"}]}]},"'"]}
+										"integration.request.path.bucket": {"Fn::Join": [ "", 
+											[
+												"'",
+												{ "Fn::Select" : [ "0", { "Fn::Split": ["/", {"Ref" : "ResourceURL"}]}]},
+												"'"
+											]
+										]}
 									},
 									"passthroughBehavior": "when_no_match",
 									"httpMethod": "PUT",
