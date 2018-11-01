@@ -208,7 +208,8 @@
 				"TemplateURL": {"Fn::Sub": "https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Services/s3_proxy.template"},
 				"Parameters": {
 					"RoleARN" : {"Fn::GetAtt": ["RoleStack","Outputs.ARN"]},
-					"vpcId": { "Ref" :"VPCID" }
+					"vpcId": { "Ref" :"VPCID" },
+					"ResourceURL": {"Ref": "ResourceType"}
 				}
 			}
 		},
@@ -223,11 +224,11 @@
 					"RoleARN" : {"Fn::GetAtt": ["RoleStack","Outputs.ARN"]},
 					"vpcId": { "Ref" :"VPCID" },
 					"ResourceURL" : {"Fn::Join": [ "", ["arn:aws:apigateway:",
-						{ "Fn::Select" : [ "3", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}] },
+						{ "Fn::Select" : [ "3", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}]},
 						":sns:path/",
-						{ "Fn::Select" : [ "4", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}] },
+						{ "Fn::Select" : [ "4", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}]},
 					 "/",
-					 { "Fn::Select" : [ "5", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}] }]]},
+					 { "Fn::Select" : [ "5", { "Fn::Split": [":", {"Ref" : "ResourceARN"}]}]} ]]},
 					 "JSONTemplate" : {"Fn::Join": ["", ["Action=Publish&TopicArn=",{"Ref" : "ResourceARN"},"&Message=$util.urlEncode($util.escapeJavaScript($input.json('$')))"]]},
 					 "OctelStreamTemplate" : {"Fn::Join": ["", ["Action=Publish&TopicArn=",{"Ref" : "ResourceARN"},"&Message=$util.urlEncode($util.escapeJavaScript($input.body))"]]},
 					 "DeleteTemplate" : ""

@@ -83,8 +83,7 @@ Below is the list of AWS resources that will be deployed by the Quick Start. Ple
 ## Deploying solution
 The solution is deployed via Cloud Formation templates.   It can either deploy the entire solution including Solace message broker and configure the rest delivery endpoints, set up the security group and endpoint as well as the APIGateway. Or, just deploy the AWS components and allow the administrator to configure an existing Solace message broker.  
 
-If you plan on integrating yourself, you will need to take care of loading root certificates and configuring TLS on the message broker to interact with the APIgateway as well as configure the message broker rest delivery endpoints,(RDPs).  See the scripts/setup-rdp.sh file for inspiration on that needs to be done in this regard.  The sript itself is a mix of Solace SEMPv1 and SEMPv2.  Also you will need to add your subnets to the VPC endpoint and add the created security groups to your message broker.
-
+If you plan on integrating yourself, you will need to take care of loading root certificates and configuring TLS on the message broker to interact with the APIgateway as well as configure the message broker rest delivery endpoints,(RDPs).  See the scripts/setup-rdp.sh file for inspiration on that needs to be done in this regard.  The script itself is a mix of Solace SEMPv1 and SEMPv2.  Also, you will need to add your subnets to the VPC endpoint and add the created security groups to your message broker.
 
 Deploying APIGateway components only                      .
 <a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Solace-ApiGW&templateURL=https://s3.amazonaws.com/solace-labs/solace-aws-service-integration/latest/templates/api_proxy.template" target="_blank">
@@ -123,7 +122,6 @@ Deploying complete solution including Solace message router.
 | Instance Type (NodeInstanceType) | t2.large | The EC2 instance type for the Solace message broker The m series are recommended for production use. <br/> The available CPU and memory of the selected machine type will limit the maximum connection scaling tier for the Solace message broker. For requirements, refer to the [Solace documentation](https://docs.solace.com/Solace-SW-Broker-Set-Up/Setting-Up-SW-Brokers.htm#Compare) |
 | Security Groups for external access (SecurityGroupID) | _Requires_ _input_ | The ID of the security group in your existing VPC that is allowed to access the console and Data|
 
-
 <br/><br/>
 
 Select [next] after completing the parameters form to get to the "Options" screen.
@@ -142,7 +140,7 @@ The expected message pattern might be to send messages to a SQS queue and receiv
 
 If a message has been delivered but not yet deleted it moved from eligible for deliver to in-flight.  From here it can either be explicitly deleted with a delete message or moved back to eligible for delivery after delete timeout, which is by default 15 seconds.
 
-When sending and recieving messages to/from an SQS queue, you will need an existing queue.  The ARN for the queue can be found from the AWS console by looking at the SQS queue details and will be of the form:
+When sending and receiving messages to/from an SQS queue, you will need an existing queue.  The ARN for the queue can be found from the AWS console by looking at the SQS queue details and will be of the form:
 
     arn:aws:sqs:<aws region>:<aws accountId>:<queue name>
 
@@ -161,9 +159,10 @@ Here is an example exchange pattern:
     Extract the ReceiptHandle from the received message ReceiptHandle and delete from queue
     pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -pal ReceiptHandle
 
-
 ### Deploying S3 solution
-When sending and receiving to/from S3 bucket just use the bucket/object as the resource ARN.  Other aspects will be simular to SQS, you can write, read and delete, though there is no concept of "in-flight".  A read message, (object), will be imidiately eligible to be re-read.
+When sending and receiving to/from S3 bucket just use the bucket/object as the resource ARN.  If you are writing to a single file as described below use specific bucket/object where “object” will be the file name, otherwise use bucket/* to write to multiple files.  Other aspects will be like SQS, you can write, read and delete, though there is no concept of "in-flight".  A read message, (object), will be immediately eligible to be re-read.
+
+If you want to write to multiple files you will need to set the messageId in the message being sent to Solace, this ID string will become the file name.  This includes the JMSMessageId, Solace Application MessageID, AMPQ MessageId, or REST Solace-Message-ID header. There is no way to set a messageId in MQTT 3.1.1. 
 
 It is possible to register a SNS subscription, described below, to be notified of changes to a S3 bucket so that you will know an object has changed. 
 
