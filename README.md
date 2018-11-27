@@ -22,6 +22,20 @@ This AWS integration also eliminates the need for bespoke bridges or gateways th
 
 The overall design is to tightly couple the message brokers to the apiGateway for security reasons.  The apiGateway is internal in nature and coupled to the message broker by subnet and security group.  If you want to make access to this ApiGateway more open, you can deploy the below cloud formation template then manually open up and expand permissions or simply use this repo as insperation to create youe own AWS service interfaces.
 
+### High Level Data Flow
+
+If you look at the following diagram from left to right:
+
+![High Level Data Flow](images/data-view.png)
+
+1. Messages come into the Solace Message broker through various open messaging protocols and are placed into a [Solace Queue](https://docs.solace.com/Features/Endpoints.htm#Queues)
+
+2. A [REST Delivery Endpoint](https://docs.solace.com/Open-APIs-Protocols/Using-REST.htm) within the message broker takes the message and sends it in a HTTP REST POST.
+
+3. The AWS API Gateway has a [Webhook](https://en.wikipedia.org/wiki/Webhook) interface that consumes the REST calls and injects them into the AWS application intergration service in a natural AWS call.
+
+The advantage of this design is that movement of data from open messaging protocol up to the AWS APIGateway happens all within the Solace Message Broker, no added bridges, gateways, or 3rd party pluggins are required.  So this data is treated with the same priority, reliability and performance as all Solace enterprise messaging.
+
 ### Detailed Topology Example
 ![Detailed Architecture](images/DetailedArch.png)
 
