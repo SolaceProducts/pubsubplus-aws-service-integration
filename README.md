@@ -32,7 +32,9 @@ If you look at the following diagram from left to right:
 
 2. A [REST Delivery Endpoint](https://docs.solace.com/Open-APIs-Protocols/Using-REST.htm) within the message broker takes the message and sends it in a HTTP REST POST.
 
-3. The AWS API Gateway has a [Webhook](https://en.wikipedia.org/wiki/Webhook) interface that consumes the REST calls and injects them into the AWS application intergration service in a natural AWS call.
+3. The AWS API Gateway has a [Webhook](https://en.wikipedia.org/wiki/Webhook) interface that consumes the REST calls and injects them into the AWS application integration service in natural AWS calls.
+
+This system allows for data retrieval in the reverse direction as well as ability to delete data in AWS.
 
 The advantage of this design is that movement of data from open messaging protocol up to the AWS APIGateway happens all within the Solace Message Broker, no added bridges, gateways, or 3rd party pluggins are required.  So this data is treated with the same priority, reliability and performance as all Solace enterprise messaging.
 
