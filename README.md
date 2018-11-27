@@ -20,7 +20,7 @@ This AWS integration also eliminates the need for bespoke bridges or gateways th
 
 ## Design
 
-The overall design is to tightly couple the message brokers to the apiGateway for security reasons.  The apiGateway is internal in nature and coupled to the message broker by subnet and security group.  If you want to make access to this ApiGateway more open, you can deploy the below cloud formation template then manually open up and expand permissions or simply use this repo as insperation to create youe own AWS service interfaces.
+The overall design is to tightly couple the message brokers to the apiGateway for security reasons.  The apiGateway is internal in nature and coupled to the message broker by subnet and security group.  If you want to make access to this ApiGateway more open, you can deploy the below cloud formation template then manually open and expand permissions or simply use this repo as inspiration to create your own AWS service interfaces.
 
 ### High Level Data Flow
 
@@ -36,7 +36,7 @@ If you look at the following diagram from left to right:
 
 This system allows for data retrieval in the reverse direction as well as ability to delete data in AWS.
 
-The advantage of this design is that movement of data from open messaging protocol up to the AWS APIGateway happens all within the Solace Message Broker, no added bridges, gateways, or 3rd party pluggins are required.  So this data is treated with the same priority, reliability and performance as all Solace enterprise messaging.
+The advantage of this design is that movement of data from open messaging protocol up to the AWS APIGateway happens all within the Solace Message Broker, no added bridges, gateways, or 3rd party pluggins are required.  So, this data is treated with the same priority, reliability and performance as all Solace enterprise messaging.
 
 ### Detailed Topology Example
 ![Detailed Architecture](images/DetailedArch.png)
@@ -120,7 +120,7 @@ Deploying complete solution including Solace message router.
 | Stack name                 | Solace-APIGW | Any globally unique name                                           |
 | **Resource Parameters** | |                                                                     |
 | Type of Resource (ResourceType) | _Requires_ _input_ | One of S3, SQS, SNS, Lambda, Kinesis, from picklist |
-| ARN of Resource (ResourceARN) | _Requires_ _input_ | The actual resource ARN being writen to and read from, see below for further deployment details |
+| ARN of Resource (ResourceARN) | _Requires_ _input_ | The actual resource ARN being written to and read from, see below for further deployment details |
 | **AWS Quick Start Configuration** | |                                                                     |
 | Subnet IDs (SubnetID) | _Requires_ _input_ | Choose public subnet IDs in your existing VPC from this list (e.g., subnet-4b8d329f,subnet-bd73afc8,subnet-a01106c2), matching your deployment architecture. |
 | VPC ID (VPCID)             | _Requires_ _input_ | Choose the ID of your existing VPC stack - for a value, refer to the `VPCID` in the "VPCStack"'s `Outputs` tab in the AWS CloudFormation view (e.g., vpc-0343606e). This VPC must exist with the proper configuration for Solace cluster access. |
