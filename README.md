@@ -107,7 +107,7 @@ Deploying APIGateway components only                      .
 </a>
 
 Deploying complete solution including Solace message router.
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Solace-ApiGW&templateURL=https://s3.amazonaws.com/solace-labs/solace-aws-service-integration/latest/templates/api_proxy%2Bvmr.template" target="_blank">
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Solace-ApiGW&templateURL=https://s3.amazonaws.com/solace-labs/solace-aws-service-integration/latest/templates/api_proxy_and_vmr.template" target="_blank">
     <img src="/images/launch-button-existing.png"/>
 </a>
 
