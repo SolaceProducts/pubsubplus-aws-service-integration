@@ -81,6 +81,7 @@ Below is the list of AWS resources that will be deployed by the Quick Start. Ple
     IAMReadOnlyAccess
 #### Additional individual permissions
     "cloudformation:CreateStack*",
+    "cloudformation:GetTemplateSummary",
     "cloudformation:DeleteStack",
     "iam:AddRoleToInstanceProfile",
     "iam:CreateInstanceProfile",
