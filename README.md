@@ -40,6 +40,7 @@ The advantage of this design is that movement of data from open messaging protoc
 
 ### Detailed Topology Example
 ![Detailed Architecture](images/DetailedArch.png)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSolaceLabs%2Fsolace-aws-service-integration.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FSolaceLabs%2Fsolace-aws-service-integration?ref=badge_shield)
 
 Breaking down the above diagram into its component parts:
 1. End application - In this example a Spring app communicating with JMS is outside the scope of this solution and is assumed to pre-exist.  It would communicate with the Solace message broker in normal fashion.
@@ -219,6 +220,9 @@ See the list of [contributors](../../graphs/contributors) who participated in th
 ## License
 
 This project is licensed under the Apache License, Version 2.0. - See the [LICENSE](LICENSE) file for details.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FSolaceLabs%2Fsolace-aws-service-integration.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FSolaceLabs%2Fsolace-aws-service-integration?ref=badge_large)
 
 ## Resources
 
