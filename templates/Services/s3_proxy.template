@@ -8,7 +8,7 @@
 		"RoleARN": {
 			"Type": "String"
 		},
-		"ResourceURL": {
+		"Bucket": {
 			"Type": "String"
 		}
 	},
@@ -32,163 +32,11 @@
 						"https"
 					],
 					"paths": {
-						"receive/{folder}": {
-							"post": {
-								"produces": [
-									"application/json"
-								],
-								"parameters": [
-									{
-                                        "name": "Content-Type",
-                                        "in": "header",
-                                        "required": false,
-                                        "type": "string"
-                                    },
-									{
-										"name": "folder",
-										"in": "path",
-										"required": true,
-										"type": "string"
-									}
-								],
-								"responses": {
-									"200": {
-										"description": "200 response",
-										"schema": {
-											"$ref": "#/definitions/Empty"
-										},
-										"headers": {
-											"Content-Length": {
-												"type": "string"
-											},
-											"Date": {
-												"type": "string"
-											},
-											"Content-Type": {
-												"type": "string"
-											}
-										}
-									},
-									"400": {
-										"description": "400 response"
-									},
-									"500": {
-										"description": "500 response"
-									}
-								},
-								"x-amazon-apigateway-integration": {
-									"credentials": {"Ref": "RoleARN"},
-									"uri": {"Fn::Join": [":",["arn:aws:apigateway",{"Ref": "AWS::Region"},"s3:path/{bucket}"]]},
-									"responses": {
-										"default": {
-											"statusCode": "200",
-											"responseParameters": {
-												"method.response.header.Content-Type": "integration.response.header.Content-Type",
-												"method.response.header.Date": "integration.response.header.Date",
-												"method.response.header.Content-Length": "integration.response.header.content-length"
-											}
-										},
-										"4\\d{2}": {
-											"statusCode": "400"
-										},
-										"5\\d{2}": {
-											"statusCode": "500"
-										}
-									},
-                                    "requestParameters": {
-                                        "integration.request.header.x-amz-acl": "'authentication-read'",
-                                        "integration.request.path.bucket": "method.request.path.folder",
-                                        "integration.request.header.Content-Type": "method.request.header.Content-Type"
-                                    },
-									"passthroughBehavior": "when_no_match",
-									"httpMethod": "GET",
-									"type": "aws"
-								}
-							}
-						},
-						"receive/{folder}/{item}": {
-							"post": {
-								"produces": [
-									"application/json"
-								],
-								"parameters": [
-									{
-										"name": "item",
-										"in": "path",
-										"required": true,
-										"type": "string"
-									},
-									{
-										"name": "folder",
-										"in": "path",
-										"required": true,
-										"type": "string"
-									}
-								],
-								"responses": {
-									"200": {
-										"description": "200 response",
-										"schema": {
-											"$ref": "#/definitions/Empty"
-										},
-										"headers": {
-											"content-type": {
-												"type": "string"
-											},
-											"Content-Type": {
-												"type": "string"
-											}
-										}
-									},
-									"400": {
-										"description": "400 response"
-									},
-									"500": {
-										"description": "500 response"
-									}
-								},
-								"x-amazon-apigateway-integration": {
-									"credentials": {"Ref": "RoleARN"},
-									"uri": {"Fn::Join": [":",["arn:aws:apigateway",{"Ref": "AWS::Region"},"s3:path/{bucket}/{object}"]]},
-									"responses": {
-										"default": {
-											"statusCode": "200",
-											"responseParameters": {
-												"method.response.header.content-type": "integration.response.header.content-type",
-												"method.response.header.Content-Type": "integration.response.header.Content-Type"
-											}
-										},
-										"4\\d{2}": {
-											"statusCode": "400"
-										},
-										"5\\d{2}": {
-											"statusCode": "500"
-										}
-									},
-									"requestParameters": {
-										"integration.request.path.object": "method.request.path.item",
-										"integration.request.path.bucket": "method.request.path.folder"
-									},
-									"passthroughBehavior": "when_no_match",
-									"httpMethod": "GET",
-									"type": "aws"
-								}
-							}
-						},
-						
 						"send": {
 							"post": {
 								"produces": [
 									"application/json"
 								],
-								"parameters": [
-									{
-										"name": "Solace-Message-ID",
-										"in": "header",
-										"required": true,
-										"type": "string"
-									}
-								],
 								"responses": {
 									"200": {
 										"description": "200 response",
@@ -230,83 +78,10 @@
 										}
 									},
 									"requestParameters": {
-										"integration.request.path.object": "method.request.header.Solace-Message-ID",
 										"integration.request.path.bucket": {"Fn::Join": [ "", 
-											[
-												"'",
-												{ "Fn::Select" : [ "0", { "Fn::Split": ["/", {"Ref" : "ResourceURL"}]}]},
-												"'"
-											]
-										]}
-									},
-									"passthroughBehavior": "when_no_match",
-									"httpMethod": "PUT",
-									"type": "aws"
-								}
-							}
-						},
-						"send/{folder}/{item}": {
-							"post": {
-								"produces": [
-									"application/json"
-								],
-								"parameters": [
-									{
-										"name": "item",
-										"in": "path",
-										"required": true,
-										"type": "string"
-									},
-									{
-										"name": "folder",
-										"in": "path",
-										"required": true,
-										"type": "string"
-									}
-								],
-								"responses": {
-									"200": {
-										"description": "200 response",
-										"schema": {
-											"$ref": "#/definitions/Empty"
-										},
-										"headers": {
-											"Content-Length": {
-												"type": "string"
-											},
-											"Content-Type": {
-												"type": "string"
-											}
-										}
-									},
-									"400": {
-										"description": "400 response"
-									},
-									"500": {
-										"description": "500 response"
-									}
-								},
-								"x-amazon-apigateway-integration": {
-									"credentials": {"Ref": "RoleARN"},
-									"uri": {"Fn::Join": [":",["arn:aws:apigateway",{"Ref": "AWS::Region"},"s3:path/{bucket}/{object}"]]},									
-									"responses": {
-										"4\\d{2}": {
-											"statusCode": "400"
-										},
-										"default": {
-											"statusCode": "200",
-											"responseParameters": {
-												"method.response.header.Content-Type": "integration.response.header.Content-Type",
-												"method.response.header.Content-Length": "integration.response.header.Content-Length"
-											}
-										},
-										"5\\d{2}": {
-											"statusCode": "500"
-										}
-									},
-									"requestParameters": {
-										"integration.request.path.object": "method.request.path.item",
-										"integration.request.path.bucket": "method.request.path.folder"
+											[ "'", {"Ref" : "Bucket"}, "'"]
+										]},
+										"integration.request.path.object": "context.requestId"
 									},
 									"passthroughBehavior": "when_no_match",
 									"httpMethod": "PUT",

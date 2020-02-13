@@ -177,14 +177,10 @@ Here is an example exchange pattern:
     pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -pal ReceiptHandle
 
 ### Deploying S3 solution
-When sending and receiving to/from S3 bucket just use the bucket/object as the resource ARN.  If you are writing to a single file as described below use specific bucket/object where “object” will be the file name, otherwise use bucket/* to write to multiple files.  Other aspects will be like SQS, you can write, read and delete, though there is no concept of "in-flight".  A read message, (object), will be immediately eligible to be re-read.
-
-If you want to write to multiple files you will need to set the messageId in the message being sent to Solace, this ID string will become the file name.  This includes the JMSMessageId, Solace Application MessageID, AMPQ MessageId, or REST Solace-Message-ID header. There is no way to set a messageId in MQTT 3.1.1. 
-
-It is possible to register a SNS subscription, described below, to be notified of changes to a S3 bucket so that you will know an object has changed. 
+This solution only writes messages to an S3 bucket, it does not read messages from an S3 bucket.  When sending to a S3 bucket just use the bucket name as the resource ARN. The message will be written to the bucket un-altered with a generated guid as the file name.
 
 ### Deploying SNS solution
-he expected message pattern might be to asynchronously send and receive messages from an SNS Topic.  This is exactly how this integration works.  Sending messages will work in the same manor as SQS or S3.  The body of the Solace message will be written to the SNS topic.
+The expected message pattern might be to asynchronously send and receive messages from an SNS Topic.  This is exactly how this integration works.  Sending messages will work in the same manor as SQS or S3.  The body of the Solace message will be written to the SNS topic.
 
 To receive messages, you will need to subscribe the Solace message broker to the SNS topic.  This will cause any matching SNS messages to be asynchronously pushed to Solace on the configured topic.  From this point a consumer app can subscribe and receive any SNS published messages.
 

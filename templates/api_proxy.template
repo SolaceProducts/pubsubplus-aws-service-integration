@@ -154,7 +154,7 @@
 					"stackName": { "Ref" :"AWS::StackName" },
 					"resourceARN" : {
                         "Fn::If": ["S3ServiceCondition",
-							{"Fn::Join": [ "", ["arn:aws:s3:::", {"Ref": "ResourceARN"}]]},
+							{"Fn::Join": [ "", ["arn:aws:s3:::", {"Ref": "ResourceARN"}, "/*"]]},
 							{"Ref": "ResourceARN"}
 						]
 					},
@@ -209,7 +209,7 @@
 				"Parameters": {
 					"RoleARN" : {"Fn::GetAtt": ["RoleStack","Outputs.ARN"]},
 					"vpcId": { "Ref" :"VPCID" },
-					"ResourceURL": {"Ref": "ResourceType"}
+					"Bucket": {"Ref": "ResourceARN"}
 				}
 			}
 		},
