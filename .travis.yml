@@ -6,6 +6,7 @@ env:
   global:
   - AWS_DEFAULT_REGION=us-east-1
   - NODE_INSTANCE_TYPE=t2.xlarge
+  - TRAVIS_S3_BUCKET=solace-travis-test
   - TRAVIS_S3_PREFIX=solace-aws-service-integration
   
 before_install:
@@ -45,6 +46,8 @@ script:
   - sed -i "s@TEST_VPC_ID@$TEST_VPC_ID@g" $TRAVIS_TEST_FILE
   - sed -i "s@TRAVIS_S3_BUCKET@$TRAVIS_S3_BUCKET@g" $TRAVIS_TEST_FILE
   - sed -i "s@TRAVIS_S3_PREFIX@$TRAVIS_S3_PREFIX@g" $TRAVIS_TEST_FILE
+  - aws s3 mb s3://$TRAVIS_S3_BUCKET || echo "s3 bucket already existed"
+  - aws s3 sync . s3://$TRAVIS_S3_BUCKET/$TRAVIS_S3_PREFIX --acl public-read
   - export TESTSTACKPREFIX="T$(date +%s)"; export TESTSTACKNAME="$TESTSTACKPREFIX-travis";
   - aws cloudformation create-stack --stack-name $TESTSTACKNAME --template-body file://templates/api_proxy_and_vmr.template --parameters file://$TRAVIS_TEST_FILE  --on-failure DELETE --capabilities  CAPABILITY_NAMED_IAM
   - echo "Waiting for stack create complete"
@@ -98,6 +101,7 @@ after_success:
     fi
 
 after_script:
+  - aws s3 rb s3://$TRAVIS_S3_BUCKET --force
   - aws cloudformation delete-stack --stack-name $TESTSTACKNAME
   - echo "Waiting for stack delete complete"
   - stackid="$(aws cloudformation describe-stacks --stack-name $TESTSTACKNAME | grep StackId | awk -F '"' '{print $4}')"
