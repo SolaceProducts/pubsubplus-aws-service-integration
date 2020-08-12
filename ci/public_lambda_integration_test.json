@@ -1,0 +1,30 @@
+[
+    {
+        "ParameterKey": "AuthHTTPHeaderName",
+        "ParameterValue": "TEST_AUTHHEADER_NAME"
+    },
+    {
+        "ParameterKey": "AuthHTTPHeaderValue",
+        "ParameterValue": "TEST_AUTHHEADER_VALUE"
+    },
+    {
+        "ParameterKey": "ResourceARN",
+        "ParameterValue": "TEST_LAMBDA"
+    },    
+    {
+        "ParameterKey": "ResourceType",
+        "ParameterValue": "Lambda"
+    },    
+    {
+        "ParameterKey": "S3ResourceNonDefaultRegion",
+        "ParameterValue": "eu-west-1"
+    },
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "TEST_QSS3BUCKETNAME"
+    },
+    {
+        "ParameterKey": "QSS3KeyPrefix",
+        "ParameterValue": "TEST_QSS3KEYPREFIX"
+    }
+]

@@ -1,0 +1,22 @@
+[
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "bczoma-s3-1"
+    },    
+    {
+        "ParameterKey": "QSS3KeyPrefix",
+        "ParameterValue": "aws-integration"
+    },    
+    {
+        "ParameterKey": "ResourceARN",
+        "ParameterValue": "b-api-gw-test-irl"
+    },    
+    {
+        "ParameterKey": "ResourceType",
+        "ParameterValue": "S3"
+    },    
+    {
+        "ParameterKey": "VPCID",
+        "ParameterValue": "vpc-9b1aeef2"
+    }
+]

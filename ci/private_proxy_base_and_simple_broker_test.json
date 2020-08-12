@@ -1,0 +1,38 @@
+[
+    {
+        "ParameterKey": "AdminPassword",
+        "ParameterValue": "admin"
+    },    
+    {
+        "ParameterKey": "KeyPairName",
+        "ParameterValue": "cikey"
+    },    
+    {
+        "ParameterKey": "NodeInstanceType",
+        "ParameterValue": "t2.large"
+    },    
+    {
+        "ParameterKey": "ExternalAccessSecurityGroupID",
+        "ParameterValue": "TEST_SECURITYGROUP"
+    },    
+    {
+        "ParameterKey": "SubnetId",
+        "ParameterValue": "TEST_SUBNET"
+    },    
+    {
+        "ParameterKey": "VpcId",
+        "ParameterValue": "TEST_VPC"
+    },
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "TEST_QSS3BUCKETNAME"
+    },    
+    {
+        "ParameterKey": "QSS3BucketRegion",
+        "ParameterValue": "TEST_QSS3BUCKETREGION"
+    },    
+    {
+        "ParameterKey": "QSS3KeyPrefix",
+        "ParameterValue": "TEST_QSS3KEYPREFIX"
+    }
+]

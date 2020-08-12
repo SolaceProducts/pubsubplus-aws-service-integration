@@ -1,0 +1,377 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  This template creates an API GW for AWS resource integration via a private integration point
+  If provided it will use an existing lambda authorizer or creates a new one if not provided.
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Target AWS Resource Parameters
+        Parameters:
+          - ResourceType
+          - ResourceARN
+          - S3ResourceNonDefaultRegion
+      - Label:
+          default: Integration Environment Parameters
+        Parameters:
+          - VpcId
+      - Label:
+          default: CloudFormation template configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3KeyPrefix
+    ParameterLabels:
+      ResourceType:
+        default: AWS Resource Type
+      ResourceARN:
+        default: AWS Resource ARN
+      S3ResourceNonDefaultRegion:
+        default: 'Optional: Non-default S3 Region, ignored for other AWS resource'
+      VpcId:
+        default: VPC Id
+      QSS3BucketName:
+        default: Quick Start S3 Bucket Name
+      QSS3KeyPrefix:
+        default: Quick Start S3 Key Prefix
+Parameters:
+  ResourceType:
+    Description: The type of AWS Resources this integration will proxy (select from list)
+    ConstraintDescription: Must be of type from list
+    Type: String
+    AllowedValues:
+      - S3
+      - SQS
+      - SNS
+      - Lambda
+  ResourceARN:
+    Description: 'The AWS ARN associated with resource, example arn:sqs:myQueue'
+    ConstraintDescription: Must be a valid AWS resource ARN
+    Type: String
+  S3ResourceNonDefaultRegion:
+    Description: 'Specify the region if integrating an S3 that is in a different region than current deployment. Leave it blanc otherwise.'
+    Default: ''
+    ConstraintDescription: An AWS Region, such as "us-east-1"
+    Type: String
+  VpcId:
+    Description: ID of the target VPC (e.g. vpc-0343606e) where the integration will be deployed (select from list)
+    Type: 'AWS::EC2::VPC::Id'
+  QSS3BucketName:
+    AllowedPattern: '^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$'
+    ConstraintDescription: >-
+      Quick Start bucket name can include numbers, lowercase letters, uppercase
+      letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Default: bczoma-s3-1
+    Description: >-
+      S3 bucket name for the Quick Start assets. Quick Start bucket name can
+      include numbers, lowercase letters, uppercase letters, and hyphens (-). It
+      cannot start or end with a hyphen (-).
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: '^[0-9a-zA-Z-/]*$'
+    ConstraintDescription: >-
+      Quick Start key prefix can include numbers, lowercase letters, uppercase
+      letters, hyphens (-), and forward slash (/).
+    Default: aws-integration
+    Description: >-
+      S3 key prefix for the Quick Start assets. Quick Start key prefix can
+      include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+Mappings:
+  ResourceMap:
+    Lambda:
+      Title: Solace_binary_message->Lambda
+      PolicyActions: 'lambda:InvokeFunction'
+    S3:
+      Title: Solace_binary_message->s3
+      PolicyActions: 's3:Put* s3:Get* s3:List*'
+    SNS:
+      Title: Solace_binary_message->SNS
+      PolicyActions: 'sns:ListTopics sns:Publish'
+    SQS:
+      Title: Solace_binary_message->SQS
+      PolicyActions: 'sqs:SendMessage sqs:ReceiveMessage sqs:DeleteMessage'
+Conditions:
+  LambdaServiceCondition: !Equals [!Ref ResourceType, Lambda]
+  S3ServiceCondition: !Equals [!Ref ResourceType, S3] 
+  SNSServiceCondition: !Equals [!Ref ResourceType, SNS]
+  SQSServiceCondition: !Equals [!Ref ResourceType, SQS]
+Resources:
+  RoleStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Security/proxy_iamrole.template
+      Parameters:
+        stackName: !Ref 'AWS::StackName'
+        resourceARN: !If 
+          - S3ServiceCondition
+          - !Join ['', [!Ref ResourceARN, /*]] # Append /* for all keys in the S3 bucket
+          - !Ref ResourceARN
+        actions: !FindInMap 
+          - ResourceMap
+          - !Ref ResourceType
+          - PolicyActions
+  LambdaStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Condition: LambdaServiceCondition
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Services/resource_proxy_combined.template
+      Parameters:
+        Title: !FindInMap 
+          - ResourceMap
+          - !Ref ResourceType
+          - Title
+        ResourceType: !Ref ResourceType
+        IntegrationType: Private
+        RoleARN: !GetAtt 
+          - RoleStack
+          - Outputs.ARN
+        ResourceARN: !Join 
+          - ''
+          - - 'arn:aws:apigateway:'
+            - !Select 
+              - '3'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - ':lambda:path/2015-03-31/functions/arn:aws:lambda:'
+            - !Select 
+              - '3'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - ':'
+            - !Select 
+              - '4'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - ':function:'
+            - !Select 
+              - '6'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - /invocations
+        VpcId: !Ref VpcId
+        JSONTemplate: $input.json('$')
+        OctetStreamTemplate: $input.body
+        DeleteTemplate: ''
+  S3Stack:
+    Type: 'AWS::CloudFormation::Stack'
+    Condition: S3ServiceCondition
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Services/resource_proxy_combined.template
+      Parameters:
+        Title: !FindInMap 
+          - ResourceMap
+          - !Ref ResourceType
+          - Title
+        ResourceType: !Ref ResourceType
+        IntegrationType: Private
+        S3ResourceNonDefaultRegion: !Ref S3ResourceNonDefaultRegion
+        RoleARN: !GetAtt 
+          - RoleStack
+          - Outputs.ARN
+        ResourceARN: !Ref ResourceARN
+        VpcId: !Ref VpcId
+  SNSStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Condition: SNSServiceCondition
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Services/resource_proxy_combined.template
+      Parameters:
+        Title: !FindInMap 
+          - ResourceMap
+          - !Ref ResourceType
+          - Title
+        ResourceType: !Ref ResourceType
+        IntegrationType: Private
+        RoleARN: !GetAtt 
+          - RoleStack
+          - Outputs.ARN
+        ResourceARN: !Join 
+          - ''
+          - - 'arn:aws:apigateway:'
+            - !Select 
+              - '3'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - ':sns:path/'
+            - !Select 
+              - '4'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - /
+            - !Select 
+              - '5'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+        VpcId: !Ref VpcId
+        JSONTemplate: !Join 
+          - ''
+          - - Action=Publish&TopicArn=
+            - !Ref ResourceARN
+            - '&Message=$util.urlEncode($util.escapeJavaScript($input.json(''$'')))'
+        OctetStreamTemplate: !Join 
+          - ''
+          - - Action=Publish&TopicArn=
+            - !Ref ResourceARN
+            - '&Message=$util.urlEncode($util.escapeJavaScript($input.body))'
+        DeleteTemplate: ''
+  SQSStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Condition: SQSServiceCondition
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Services/resource_proxy_combined.template
+      Parameters:
+        Title: !FindInMap 
+          - ResourceMap
+          - !Ref ResourceType
+          - Title
+        ResourceType: !Ref ResourceType
+        IntegrationType: Private
+        RoleARN: !GetAtt 
+          - RoleStack
+          - Outputs.ARN
+        ResourceARN: !Join 
+          - ''
+          - - 'arn:aws:apigateway:'
+            - !Select 
+              - '3'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - ':'
+            - !Select 
+              - '2'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - ':path/'
+            - !Select 
+              - '4'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+            - /
+            - !Select 
+              - '5'
+              - !Split 
+                - ':'
+                - !Ref ResourceARN
+        VpcId: !Ref VpcId
+        JSONTemplate: >-
+          Action=SendMessage&MessageBody=$util.urlEncode($util.escapeJavaScript($input.json('$')))
+        OctetStreamTemplate: >-
+          Action=SendMessage&MessageBody=$util.urlEncode($util.escapeJavaScript($input.body))
+        DeleteTemplate: Action=DeleteMessage&ReceiptHandle=$util.urlEncode($input.body)
+Outputs:
+  APIGatewayId:
+    Value: !If 
+      - LambdaServiceCondition
+      - !GetAtt 
+        - LambdaStack
+        - Outputs.APIGatewayId
+      - !If 
+        - S3ServiceCondition
+        - !GetAtt 
+          - S3Stack
+          - Outputs.APIGatewayId
+        - !If 
+          - SNSServiceCondition
+          - !GetAtt 
+            - SNSStack
+            - Outputs.APIGatewayId
+          - !If 
+            - SQSServiceCondition
+            - !GetAtt 
+              - SQSStack
+              - Outputs.APIGatewayId
+            - {}
+    Description: API Gateway ID
+    Export:
+      Name: !Sub '${AWS::StackName}-APIGateWayID'
+  ProxyAPISendUrl:
+    Value: !If 
+      - LambdaServiceCondition
+      - !GetAtt 
+        - LambdaStack
+        - Outputs.ProxyAPISendUrl
+      - !If 
+        - S3ServiceCondition
+        - !GetAtt 
+          - S3Stack
+          - Outputs.ProxyAPISendUrl
+        - !If 
+          - SNSServiceCondition
+          - !GetAtt 
+            - SNSStack
+            - Outputs.ProxyAPISendUrl
+          - !If 
+            - SQSServiceCondition
+            - !GetAtt 
+              - SQSStack
+              - Outputs.ProxyAPISendUrl
+            - {}
+    Description: API Gateway URL for /send resource
+    Export:
+      Name: !Sub '${AWS::StackName}-APIGatewaySendUrl'
+  ProxyAPIReceiveUrl:
+    Value: !If 
+      - LambdaServiceCondition
+      - !GetAtt 
+        - LambdaStack
+        - Outputs.ProxyAPIReceiveUrl
+      - !If 
+        - S3ServiceCondition
+        - !GetAtt 
+          - S3Stack
+          - Outputs.ProxyAPIReceiveUrl
+        - !If 
+          - SNSServiceCondition
+          - !GetAtt 
+            - SNSStack
+            - Outputs.ProxyAPIReceiveUrl
+          - !If 
+            - SQSServiceCondition
+            - !GetAtt 
+              - SQSStack
+              - Outputs.ProxyAPIReceiveUrl
+            - {}
+    Description: API Gateway URL for /receive resource
+    Export:
+      Name: !Sub '${AWS::StackName}-APIGatewayReceiveUrl'
+  ProxyAPIDeleteUrl:
+    Value: !If 
+      - LambdaServiceCondition
+      - !GetAtt 
+        - LambdaStack
+        - Outputs.ProxyAPIDeleteUrl
+      - !If 
+        - S3ServiceCondition
+        - !GetAtt 
+          - S3Stack
+          - Outputs.ProxyAPIDeleteUrl
+        - !If 
+          - SNSServiceCondition
+          - !GetAtt 
+            - SNSStack
+            - Outputs.ProxyAPIDeleteUrl
+          - !If 
+            - SQSServiceCondition
+            - !GetAtt 
+              - SQSStack
+              - Outputs.ProxyAPIDeleteUrl
+            - {}
+    Description: API Gateway URL for /delete resource
+    Export:
+      Name: !Sub '${AWS::StackName}-APIGatewayDeleteUrl'
