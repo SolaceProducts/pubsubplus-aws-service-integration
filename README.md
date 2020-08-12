@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SolaceDev/solace-aws-service-integration.svg?branch=AWSIntProductization)](https://travis-ci.org/SolaceDev/solace-aws-service-integration)
+[![Build Status](https://travis-ci.org/SolaceProducts/pubsubplus-aws-service-integration.svg?branch=master)](https://travis-ci.org/SolaceProducts/pubsubplus-aws-service-integration)
 
 # PubSub+ and AWS Services Integration
 
@@ -137,13 +137,13 @@ For receiving messages from an SQS queue, a request/reply pattern should be used
 Here is an example exchange pattern:
 
     Send Message
-    pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/send -mr=1 -mn=1 -pal messageBody
+    pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=pubsubplus-aws-service-integration/send -mr=1 -mn=1 -pal messageBody
 
     Receive Message
-    pubSubTools/sdkperf_c -cip="${publicIp}" -stl=solace-aws-service-integration/receive/reply -ptl=solace-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
+    pubSubTools/sdkperf_c -cip="${publicIp}" -stl=pubsubplus-aws-service-integration/receive/reply -ptl=pubsubplus-aws-service-integration/receive -prp=/reply -mr=1 -mn=1 -md
 
     Extract the ReceiptHandle from the received message ReceiptHandle and delete from queue
-    pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=solace-aws-service-integration/delete -mr=1 -mn=1 -pal ReceiptHandle
+    pubSubTools/sdkperf_c -cip="${publicIp}" -ptl=pubsubplus-aws-service-integration/delete -mr=1 -mn=1 -pal ReceiptHandle
 
 ### Integration with S3
 
@@ -179,7 +179,7 @@ Here is an example exchange pattern:
 
     Send Message and receive reply
     echo "{\"a\":1,\"b\":2,\"op\":\"+\"}" > request.file
-    pubSubTools/sdkperf_c -cip="${publicIp}" -pal=request.file -stl=solace-aws-service-integration/send/reply -ptl=solace-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
+    pubSubTools/sdkperf_c -cip="${publicIp}" -pal=request.file -stl=pubsubplus-aws-service-integration/send/reply -ptl=pubsubplus-aws-service-integration/send -prp=/reply -mr=1 -mn=1 -md
 
 ## Minimum Resource Requirements
 
@@ -279,10 +279,10 @@ Step 1: For each public resource integration, [set up a public resource integrat
 
 * Use the `private_proxy_base.template`.
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Proxy-Base&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/private_proxy_base.template" target="_blank">
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Proxy-Base&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/private_proxy_base.template" target="_blank">
     <img src="/images/LaunchTemplateButton.png"/>
 </a>
-<a href="https://github.com/SolaceDev/solace-aws-service-integration/blob/AWSIntProductization/templates/private_proxy_base.template" target="_blank">
+<a href="https://github.com/SolaceProducts/pubsubplus-aws-service-integration/blob/master/templates/private_proxy_base.template" target="_blank">
     <img src="/images/ViewTemplateButton.png"/>
 </a>
 
@@ -306,10 +306,10 @@ It is recommended to provide an existing "Broker Member Nodes Security Group" as
 
 * Use `private_proxy_base_and_simple_broker.template`
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Proxy-Base-And-Solace-Broker&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/private_proxy_base_and_simple_broker.template" target="_blank">
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Proxy-Base-And-Solace-Broker&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/private_proxy_base_and_simple_broker.template" target="_blank">
     <img src="/images/LaunchTemplateButton.png"/>
 </a>
-<a href="https://github.com/SolaceDev/solace-aws-service-integration/blob/AWSIntProductization/templates/private_proxy_base_and_simple_broker.template" target="_blank">
+<a href="https://github.com/SolaceProducts/pubsubplus-aws-service-integration/blob/master/templates/private_proxy_base_and_simple_broker.template" target="_blank">
     <img src="/images/ViewTemplateButton.png"/>
 </a>
 
@@ -334,10 +334,10 @@ To determine the IP address or public DNS hostname of the created broker, go to 
 
 * Use `private_resource_integration.template` to create the stack
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Resource-Integration&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/private_resource_integration.template" target="_blank">
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Resource-Integration&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/private_resource_integration.template" target="_blank">
     <img src="/images/LaunchTemplateButton.png"/>
 </a>
-<a href="https://github.com/SolaceDev/solace-aws-service-integration/blob/AWSIntProductization/templates/private_resource_integration.template" target="_blank">
+<a href="https://github.com/SolaceProducts/pubsubplus-aws-service-integration/blob/master/templates/private_resource_integration.template" target="_blank">
     <img src="/images/ViewTemplateButton.png"/>
 </a>
 
@@ -361,8 +361,7 @@ One of the script parameters is `INTEGRATION_API_URL`, which can be obtained fro
 The script is located under the `scripts` directory in this GitHub repo. Download the script and run it as follows, providing at least the mandatory parameters (that are not in `[]` brackets. 
 
 ```
-#wget https://github.com/SolaceProducts/pubsubplus-aws-service-integration/blob/master/scripts/setup-rdp.sh
-wget https://raw.githubusercontent.com/SolaceDev/solace-aws-service-integration/AWSIntProductization/scripts/setup-rdp.sh
+wget https://raw.githubusercontent.com/SolaceProducts/pubsubplus-aws-service-integration/master/scripts/setup-rdp.sh
 chmod +x setup-rdp.sh
 INTEGRATION_NAME=<name to be used to identify this AWS resource integration> \
   INTEGRATION_API_URL=<the full URL to the API in the API Gateway. Example: https://wx8z07j6j7.execute-api.eu-west-1.amazonaws.com/DEVELOPMENT/send> \
@@ -382,10 +381,10 @@ The script will [setup a PubSub+ queue](https://docs.solace.com/Solace-Cloud/ggs
 
 * Use `public_resource_integration.template`
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Public-Resource-Integration&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/public_resource_integration.template" target="_blank">
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Public-Resource-Integration&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/public_resource_integration.template" target="_blank">
     <img src="/images/LaunchTemplateButton.png"/>
 </a>
-<a href="https://github.com/SolaceDev/solace-aws-service-integration/blob/AWSIntProductization/templates/public_resource_integration.template" target="_blank">
+<a href="https://github.com/SolaceProducts/pubsubplus-aws-service-integration/blob/master/templates/public_resource_integration.template" target="_blank">
     <img src="/images/ViewTemplateButton.png"/>
 </a>
 
@@ -412,7 +411,7 @@ The difference is that `HTTP_AUTH_HEADER_NAME` and `HTTP_AUTH_TOKEN_VALUE` param
 
 ```
 #wget https://github.com/SolaceProducts/pubsubplus-aws-service-integration/blob/master/scripts/setup-rdp.sh
-wget https://raw.githubusercontent.com/SolaceDev/solace-aws-service-integration/AWSIntProductization/scripts/setup-rdp.sh
+wget https://raw.githubusercontent.com/SolaceProducts/pubsubplus-aws-service-integration/master/scripts/setup-rdp.sh
 chmod +x setup-rdp.sh
 INTEGRATION_NAME=<name to be used to identify this AWS resource integration> \
   INTEGRATION_API_URL=<the full URL to the API in the API Gateway. Example: https://wx8z07j6j7.execute-api.eu-west-1.amazonaws.com/DEVELOPMENT/send> \
@@ -437,7 +436,7 @@ Launch following two templates in your test AWS region, no parameters are requir
 
 * Create a sample VPC and within that a Subnet and Security Group
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Sample-VPC&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/SetupSampleEnvironment/setup_sample_new_vpc_for_private_integration.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Sample-VPC&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/SetupSampleEnvironment/setup_sample_new_vpc_for_private_integration.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
 
 Locate and note the "VPC", "Subnet" and "SecurityGroup" outputs of the template, which will be used for the next steps:
 
@@ -445,7 +444,7 @@ Locate and note the "VPC", "Subnet" and "SecurityGroup" outputs of the template,
 
 * Create sample AWS SQS, SNS, S3 and Lambda resources
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Sample-Resources&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/SetupSampleEnvironment/setup_sample_aws_resources.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Sample-Resources&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/SetupSampleEnvironment/setup_sample_aws_resources.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
 
 Note the "TestS3Bucket" output of the template. The ARN is `arn:aws:s3:::sample-resources-tests3bucket-1clsl6kkrir7`, from which the S3 bucket name is `sample-resources-tests3bucket-1clsl6kkrir7`:
 
@@ -457,7 +456,7 @@ This template will create the base for integration together with a PubSub+ broke
 
 Provide the required parameters, for example `admin` as "Broker Admin Password", your "SSH Key Name", leave "Broker Node Instance Type" at default, then use the VPC, Subnet and Security Group (for the Optional External Access Security Group) from [Step 1](#step-1-setup-pre-requisites). No need to change the "CloudFormation template configuration" parameters. Again, click through all the "Next" buttons and acknowledge creation of IAM resources.
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Sample-IntegrationBaseWithBroker&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/private_proxy_base_and_simple_broker.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Sample-IntegrationBaseWithBroker&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/private_proxy_base_and_simple_broker.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
 
 The output of the template will provide the public DNS name of the deployed broker:
 
@@ -469,7 +468,7 @@ This template will create a dedicated AWS API Gateway to the target resource.
 
 Select S3 as the resource, and provide the S3 resource ARN and the VPC Id from [Step 1](#step-1-setup-pre-requisites). Leave the "Non-default S3 Region" empty as the S3 resource is in the same region as the integration.
 
-<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Resource-Integration&templateURL=https://bczoma-s3-1.s3.ca-central-1.amazonaws.com/aws-integration/templates/private_resource_integration.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
+<a href="https://console.aws.amazon.com/cloudformation/home#/stacks/new?stackName=Private-Resource-Integration&templateURL=https://solace-products.s3.us-east-1.amazonaws.com/pubsubplus-aws-service-integration/latest/templates/private_resource_integration.template" target="_blank"><img src="/images/LaunchTemplateButton.png"/></a>
 
 The output of the template will provide the REST API URL that can be used to send data to the S3 resource.
 
@@ -480,8 +479,7 @@ The output of the template will provide the REST API URL that can be used to sen
 Download and run the `setup-rdp.sh` script and provide the parameters gathered from the templates. In this example:
 
 ```
-#wget https://github.com/SolaceProducts/pubsubplus-aws-service-integration/blob/master/scripts/setup-rdp.sh
-wget https://raw.githubusercontent.com/SolaceDev/solace-aws-service-integration/AWSIntProductization/scripts/setup-rdp.sh
+wget https://raw.githubusercontent.com/SolaceProducts/pubsubplus-aws-service-integration/master/scripts/setup-rdp.sh
 chmod +x setup-rdp.sh
 # Update with your actual values
 INTEGRATION_NAME=my-s3 \
