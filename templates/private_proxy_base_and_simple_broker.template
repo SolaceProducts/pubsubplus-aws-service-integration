@@ -1,0 +1,188 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template creates a VPC proxy base for AWS service integration, tight coupling scenario
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+      - Label:
+          default: Private Proxy Base configuration
+        Parameters:
+          - VpcId
+      - Label:
+          default: PubSub+ Event Broker Parameters
+        Parameters:
+          - AdminPassword
+          - KeyPairName
+          - NodeInstanceType
+          - SubnetId
+          - ExternalAccessSecurityGroupID
+      - Label:
+          default: CloudFormation template configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3BucketRegion
+          - QSS3KeyPrefix
+    ParameterLabels:
+      VpcId:
+        default: VPC Id
+      AdminPassword:
+        default: Broker Admin Password
+      KeyPairName:
+        default: SSH Key Name
+      NodeInstanceType:
+        default: Broker Node Instance Type
+      SubnetId:
+        default: Subnet To Be used
+      ExternalAccessSecurityGroupID:
+        default: 'Optional: External Access Security Group'
+      QSS3BucketName:
+        default: Quick Start S3 Bucket Name
+      QSS3KeyPrefix:
+        default: Quick Start S3 Key Prefix
+      QSS3BucketRegion:
+        default: Quick Start S3 Region
+Parameters:
+  VpcId:
+    Description: Id of the VPC (e.g. vpc-0343606e) to be used for the deployment (select from the list)
+    Type: 'AWS::EC2::VPC::Id'
+  AdminPassword:
+    Description: Password to access PubSub+ admin console and SEMP
+    NoEcho: True
+    Type: String
+  KeyPairName:
+    Description: >-
+      The name of an existing public/private key pair,
+      which allows you to securely connect to the broker EC2 instance after it launches
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  NodeInstanceType:
+    Description: >-
+      Type of EC2 instance for the PubSub+ event broker. Note: ensure that your region
+      supports the selected instance type before continuing
+    AllowedValues:
+      - t2.large
+      - t2.xlarge
+      - m3.large
+      - m3.xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - c4.xlarge
+    ConstraintDescription: Must be a valid EC2 instance type.
+    Default: t2.large
+    Type: String
+  SubnetId:
+    Description: >-
+      VPC Subnet ID (e.g. subnet-4b8d329f) where the broker instance will be deployed and where the API Gateway will be accessed from; must exist within the selected VPC (select from the list)
+    Type: 'AWS::EC2::Subnet::Id'
+  ExternalAccessSecurityGroupID:
+    Description: >-
+      A SG within the selected VPC, which defines the inbound rules for the  broker to be created (select from the list).
+      If not provided a new SG will be created, initialized with allowing any inbound traffic.
+    Type: 'AWS::EC2::SecurityGroup::Id'
+    Default: ''
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$
+    ConstraintDescription: Quick Start bucket name can include numbers, lowercase
+      letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen
+      (-).
+    Default: solace-products
+    Description: S3 bucket name for the Quick Start assets. Quick Start bucket name
+      can include numbers, lowercase letters, uppercase letters, and hyphens (-).
+      It cannot start or end with a hyphen (-).
+    Type: String
+  QSS3BucketRegion:
+    Default: 'us-east-1'
+    Description: 'The AWS Region (e.g.: us-east-1) where the Quick Start S3 bucket (QSS3BucketName) is hosted. When using your own bucket, you must specify this value.'
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^[0-9a-zA-Z-/]*$
+    ConstraintDescription: Quick Start key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: pubsubplus-aws-service-integration/latest
+    Description: S3 key prefix for the Quick Start assets. Quick Start key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
+    Type: String
+Conditions:
+  NoExternalAccessSecurityGroupID: !Equals [!Ref ExternalAccessSecurityGroupID, '']
+Resources:
+  NewExternalAccessSecurityGroup: # Create a SG to be used for external access if not provided
+    Type: 'AWS::EC2::SecurityGroup'
+    Condition: NoExternalAccessSecurityGroupID
+    Properties:
+      GroupName: AWS API GW Testing Security Group
+      GroupDescription: Security group for AWS API GW Testing
+      VpcId: !Ref VpcId
+      SecurityGroupIngress: # Ingress is set to wide open for testing purposes
+        - IpProtocol: '-1'
+          CidrIp: '0.0.0.0/0'
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: AWS-API-GW-Testing-SecurityGroup
+  SecurityGroupStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Security/private_proxy_securitygroup.template
+      Parameters:
+        vpcId: !Ref VpcId
+  EndPointStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Security/private_proxy_vpcendpoint.template
+      Parameters:
+        vpcId: !Ref VpcId
+        subnets: !Ref SubnetId
+        securityGroups: !Join 
+          - ','
+          - - !GetAtt 
+              - SecurityGroupStack
+              - Outputs.BrokerMembersSecurityGroup
+            - !GetAtt 
+              - SecurityGroupStack
+              - Outputs.ApiSecurityGroup
+  SolaceStack:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: !Sub >-
+        https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Solace/nodecreate.template
+      Parameters:
+        AdminPassword: !Ref AdminPassword
+        KeyPairName: !Ref KeyPairName
+        NodeInstanceType: !Ref NodeInstanceType
+        SubnetID: !Ref SubnetId
+        ParentStackName: !Ref 'AWS::StackName'
+        NodeSecurityGroup: !Join 
+          - ','
+          - - !If [NoExternalAccessSecurityGroupID, !Ref NewExternalAccessSecurityGroup, !Ref ExternalAccessSecurityGroupID]
+            - !GetAtt 
+              - SecurityGroupStack
+              - Outputs.BrokerMembersSecurityGroup
+        PersistentStorage: '20'
+        QSS3BucketName: !Ref QSS3BucketName
+        QSS3KeyPrefix: !Join ['', [!Ref QSS3KeyPrefix, '/']]
+        QSS3BucketRegion: !Ref QSS3BucketRegion
+Outputs:
+  ExternalAccessSecurityGroupID:
+    Value: !If [NoExternalAccessSecurityGroupID, !Ref NewExternalAccessSecurityGroup, !Ref ExternalAccessSecurityGroupID]
+    Description: Security Group to be used to control external access to the event broker
+    Export:
+      Name: !Sub '${AWS::StackName}-ExternalAccessSecurityGroupID'
+  BrokerInstanceEC2Id:
+    Value: !GetAtt 
+      - SolaceStack
+      - Outputs.EC2ID
+    Description: EC2 instance of the PubSub+ broker launched
+    Export:
+      Name: !Sub '${AWS::StackName}-BrokerInstanceEC2Id'
+  BrokerPublicDNSName:
+    Value: !GetAtt 
+      - SolaceStack
+      - Outputs.PublicDNSName
+    Description: Public DNS name of the PubSub+ broker launched
+    Export:
+      Name: !Sub '${AWS::StackName}-BrokerPublicDNSName'

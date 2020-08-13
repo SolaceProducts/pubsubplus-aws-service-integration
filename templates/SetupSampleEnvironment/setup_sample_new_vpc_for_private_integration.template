@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Demonstrates a simple setup of pre-requisites for PubSub+ and AWS resource integration
+  Creates a starting VPC
+Parameters: {} # This template requires no parameters
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: AWS-API-GW-Testing-VPC
+  Subnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      Tags:
+        - Key: Name
+          Value: AWS-API-GW-Testing-Subnet
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: AWS-API-GW-Testing-InternetGateway
+  VPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  RouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: AWS-API-GW-Testing-RouteTable
+  SubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet
+  InternetGatewayRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref RouteTable
+      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: AWS API GW Testing Security Group
+      GroupDescription: Security group for AWS API GW Testing
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: '-1'
+          CidrIp: '0.0.0.0/0'
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: AWS-API-GW-Testing-SecurityGroup
+Outputs:
+  VPC:
+    Value: !Ref VPC
+    Description: Id of the created VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-TestVPC'
+  Subnet:
+    Value: !Ref Subnet
+    Description: Id of the created Subnet
+    Export:
+      Name: !Sub '${AWS::StackName}-TestSubnet'
+  SecurityGroup:
+    Value: !Ref SecurityGroup
+    Description: SecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-TestSecurityGroup'

@@ -1,0 +1,22 @@
+[
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "TEST_QSS3BUCKETNAME"
+    },    
+    {
+        "ParameterKey": "QSS3KeyPrefix",
+        "ParameterValue": "TEST_QSS3KEYPREFIX"
+    },    
+    {
+        "ParameterKey": "ResourceARN",
+        "ParameterValue": "TEST_LAMBDA"
+    },    
+    {
+        "ParameterKey": "ResourceType",
+        "ParameterValue": "Lambda"
+    },    
+    {
+        "ParameterKey": "VpcId",
+        "ParameterValue": "TEST_VPC"
+    }
+]

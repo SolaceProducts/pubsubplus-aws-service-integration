@@ -1,0 +1,26 @@
+[
+    {
+        "ParameterKey": "AuthHTTPHeaderName",
+        "ParameterValue": "TEST_AUTHHEADER_NAME"
+    },
+    {
+        "ParameterKey": "AuthHTTPHeaderValue",
+        "ParameterValue": "TEST_AUTHHEADER_VALUE"
+    },
+    {
+        "ParameterKey": "ResourceType",
+        "ParameterValue": "S3"
+    },
+    {
+        "ParameterKey": "ResourceARN",
+        "ParameterValue": "TEST_S3BUCKET"
+    },    
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "TEST_QSS3BUCKETNAME"
+    },
+    {
+        "ParameterKey": "QSS3KeyPrefix",
+        "ParameterValue": "TEST_QSS3KEYPREFIX"
+    }
+]

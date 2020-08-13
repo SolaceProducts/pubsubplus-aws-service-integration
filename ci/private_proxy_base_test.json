@@ -1,0 +1,22 @@
+[
+    {
+        "ParameterKey": "VpcId",
+        "ParameterValue": "TEST_VPC"
+    },
+    {
+        "ParameterKey": "SubnetIDs",
+        "ParameterValue": "TEST_SUBNET"
+    },    
+    {
+        "ParameterKey": "BrokerMembersSecurityGroupId",
+        "ParameterValue": "TEST_BROKERMEMBERSSECURITYGROUPID"
+    },    
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "TEST_QSS3BUCKETNAME"
+    },    
+    {
+        "ParameterKey": "QSS3KeyPrefix",
+        "ParameterValue": "TEST_QSS3KEYPREFIX"
+    }
+]

@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation template to create a IAM role for use with API Gateway
+Parameters:
+  stackName:
+    Type: String
+  resourceARN:
+    Type: String
+  actions:
+    Type: String
+Mappings: {}
+Conditions: {}
+Resources:
+  ApiProxyRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Path: /
+      Policies:
+        - PolicyName: !Join 
+            - '-'
+            - - !Ref stackName
+              - policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Resource: !Ref resourceARN
+                Action: !Split 
+                  - ' '
+                  - !Ref actions
+      AssumeRolePolicyDocument:
+        Statement:
+          - Sid: ''
+            Action:
+              - 'sts:AssumeRole'
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Effect: Allow
+        Version: 2012-10-17
+      RoleName: !Join 
+        - '-'
+        - - !Ref stackName
+          - !Ref 'AWS::Region'
+          - role
+Outputs:
+  ARN:
+    Value: !GetAtt 
+      - ApiProxyRole
+      - Arn
+    Description: Role ARN
+    Export:
+      Name: !Sub '${AWS::StackName}-ARN'

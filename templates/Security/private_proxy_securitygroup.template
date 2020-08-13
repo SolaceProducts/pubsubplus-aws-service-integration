@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  CloudFormation template to create a Security Group to isolate ingress to API
+  Gateway
+Parameters:
+  vpcId:
+    Type: String
+  existingMembersSecurityGroupId:
+    Type: String
+    Default: ''
+Mappings: {}
+Conditions:
+  NoExistingMembersSecurityGroupId: !Equals [!Ref existingMembersSecurityGroupId, '']
+Resources:
+  BrokerMembersSecurityGroup: # only generate if existingMembersSecurityGroupId has not been provided
+    Type: 'AWS::EC2::SecurityGroup'
+    Condition: NoExistingMembersSecurityGroupId
+    Properties:
+      VpcId: !Ref vpcId
+      GroupDescription: Groups all PubSub+ broker nodes for API Gateway access
+  ApiSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-ApiGatewaySecurity'
+      GroupDescription: Defines access to VPC Endpoint for API Gateway
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !If [NoExistingMembersSecurityGroupId, !Ref BrokerMembersSecurityGroup, !Ref existingMembersSecurityGroupId]
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !If [NoExistingMembersSecurityGroupId, !Ref BrokerMembersSecurityGroup, !Ref existingMembersSecurityGroupId]
+      VpcId: !Ref vpcId
+Outputs:
+  BrokerMembersSecurityGroup:
+    Value: !If [NoExistingMembersSecurityGroupId, !Ref BrokerMembersSecurityGroup, !Ref existingMembersSecurityGroupId]
+    Description: API Gateway Security Group
+    Export:
+      Name: !Sub '${AWS::StackName}-SecurityGroupMember'
+  ApiSecurityGroup:
+    Value: !Ref ApiSecurityGroup
+    Description: API Gateway Security Group
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiSecurityGroup'

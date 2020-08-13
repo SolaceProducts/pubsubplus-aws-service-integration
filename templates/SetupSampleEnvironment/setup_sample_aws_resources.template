@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Demonstrates a simple setup of pre-requisites for PubSub+ and AWS resource integration
+  Creates test SQS, SNS, S3 and Lambda AWS resources
+Parameters: {} # This template requires no parameters
+Resources:
+  TestSqsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 60
+      QueueName: !Join [ "-", [ !Ref 'AWS::StackName', 'TestSqsQueue' ] ]
+  TestSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Join [ "-", [ !Ref 'AWS::StackName', 'TestSnsTopic' ] ]
+  SubscriptionQueueToTestSnsTopic:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Join [ "-", [ !Ref 'AWS::StackName', 'SubscriptionQueueToTestSnsTopic' ] ]
+  SnsSubscriptionToTestSnsTopic:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: sqs
+      Endpoint: !GetAtt SubscriptionQueueToTestSnsTopic.Arn
+      TopicArn: !Ref TestSnsTopic
+      RawMessageDelivery: true
+  TestS3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete # This is a test resource, reconsider for other purposes.
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls : true
+        BlockPublicPolicy : true
+        IgnorePublicAcls : false # Minimum required to work with API GW
+        RestrictPublicBuckets : true
+  TestLambdaIamRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      RoleName: !Join [ "-", [ !Ref 'AWS::StackName', 'TestLambdaIamRole' ] ]
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement: # This is wide open for demo purposes. Adjust for production!
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+      Description: IAM Role for the sample lambda function
+  TestLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.6
+      Role: !GetAtt TestLambdaIamRole.Arn
+      Handler: index.lambda_handler
+      Code:
+        ZipFile: |
+          import json
+          def lambda_handler(event, context):
+              # Sample code, mirrors back the input parameter
+              return {
+                  'statusCode': 200,
+                  'body': event
+              }
+      Description: A sample lambda function to test PubSub+ AWS lambda resource integration.
+Outputs:
+  TestSqsQueue:
+    Value: !GetAtt TestSqsQueue.Arn
+    Description: TestSqsQueue ARN
+    Export:
+      Name: !Sub '${AWS::StackName}-TestSqsQueue'
+  TestSnsTopic:
+    Value: !Ref TestSnsTopic
+    Description: TestSnsTopic ARN
+    Export:
+      Name: !Sub '${AWS::StackName}-TestSnsTopic'
+  TestS3Bucket:
+    Value: !GetAtt TestS3Bucket.Arn
+    Description: TestS3Bucket ARN
+    Export:
+      Name: !Sub '${AWS::StackName}-TestS3Bucket'
+  TestLambda:
+    Value: !GetAtt TestLambda.Arn
+    Description: TestLambda ARN
+    Export:
+      Name: !Sub '${AWS::StackName}-TestLambda'

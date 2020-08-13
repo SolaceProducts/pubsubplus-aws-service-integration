@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Creates a simple lambda authorizer to be used in AWS API gateway.
+  It will check the authorization header against the expected value
+Parameters:
+  AuthHTTPHeaderValue:
+    Type: String
+Resources:
+  SampleLambdaAuthorizer:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.6
+      Role: !GetAtt SampleLambdaAuthorizerIamRole.Arn
+      Handler: index.lambda_handler
+      Code:
+        # In following script AuthHTTPHeaderValue will be substituted
+        ZipFile: !Sub |
+          import json
+
+          def lambda_handler(event, context):
+
+              # Determine the authorization action by examining the authorization header
+              # - it must match the expected value to allow invocation 
+              if 'authorizationToken' in event.keys() and event['authorizationToken'] == '${AuthHTTPHeaderValue}':
+                  effect = 'Allow'
+              else:
+                  effect = 'Deny'
+
+              # Use any principalId here as it is not used further in the example
+              principalId = 'TestPrincipal'
+
+              # To build the resourceArn of the response, extract params from passed methodArn
+              methodArnComponents = event['methodArn'].split(':')
+              region = methodArnComponents[3]
+              awsAccountId = methodArnComponents[4]
+              apiGatewayArnPathComponents = methodArnComponents[5].split('/')
+              restApiId = apiGatewayArnPathComponents[0]
+              stage = apiGatewayArnPathComponents[1]
+              # Here generally allow or deny all
+              verb='*'
+              resource='*'
+              # Construct the ARN for the response
+              resourceArn = 'arn:aws:execute-api:{}:{}:{}/{}/{}/{}'.format(region, awsAccountId, restApiId, stage, verb, resource)
+              
+              # build the response object (a Python dict):
+              policy = {
+                  'principalId': principalId,
+                  'policyDocument': {
+                      'Version': '2012-10-17',
+                      'Statement': [
+                        {
+                          'Action': 'execute-api:Invoke',
+                          'Effect': effect,
+                          'Resource': [
+                            resourceArn
+                          ]
+                        }
+                      ]
+                  }
+              }
+              
+              return policy
+      Description: simple lambda authorizer to be used in AWS API gateway
+  SampleLambdaAuthorizerIamRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement: # This is wide open for demo purposes. Adjust for production!
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+      Description: IAM Role for the sample lambda function
+Outputs:
+  LambdaAuthorizer:
+    Value: !GetAtt SampleLambdaAuthorizer.Arn
+    Description: TestLambda ARN
+    Export:
+      Name: !Sub '${AWS::StackName}-SampleLambdaAuthorizer'
