@@ -61,6 +61,9 @@ jobs:
         export RESOURCESSTACKNAME="$TESTSTACKNAMEBASE-res"; echo "RESOURCESSTACKNAME=$RESOURCESSTACKNAME" >> $GITHUB_ENV
         aws cloudformation create-stack --stack-name $RESOURCESSTACKNAME --template-body file://templates/SetupSampleEnvironment/setup_sample_aws_resources.template  --on-failure DELETE --capabilities  CAPABILITY_NAMED_IAM
         #
+        echo "Waiting for stack create complete"
+        until aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
+        #
         TEST_SNSTOPIC=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestSnsTopic'].OutputValue" --output text`; echo TEST_SNSTOPIC=$TEST_SNSTOPIC
         find ci/ -type f -exec sed -i -e 's@TEST_SNSTOPIC@'$TEST_SNSTOPIC'@g' {} \;
         TEST_SQSQUEUE=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestSqsQueue'].OutputValue" --output text`; echo TEST_SQSQUEUE=$TEST_SQSQUEUE
@@ -69,6 +72,9 @@ jobs:
         find ci/ -type f -exec sed -i -e 's@TEST_S3BUCKET@'$TEST_S3BUCKET'@g' {} \;
         TEST_LAMBDA=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestLambda'].OutputValue" --output text`; echo TEST_LAMBDA=$TEST_LAMBDA
         find ci/ -type f -exec sed -i -e 's@TEST_LAMBDA@'$TEST_LAMBDA'@g' {} \;
+        #
+        until aws cloudformation describe-stacks --stack-name $VPCSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
+        #
         TEST_VPC=`aws cloudformation describe-stacks --stack-name $VPCSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='VPC'].OutputValue" --output text`; echo TEST_VPC=$TEST_VPC
         find ci/ -type f -exec sed -i -e 's@TEST_VPC@'$TEST_VPC'@g' {} \;
         TEST_SUBNET=`aws cloudformation describe-stacks --stack-name $VPCSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='Subnet'].OutputValue" --output text`; echo TEST_SUBNET=$TEST_SUBNET
@@ -84,11 +90,6 @@ jobs:
         find ci/ -type f -exec sed -i -e 's@TEST_QSS3KEYPREFIX@'$TEST_QSS3KEYPREFIX'@g' {} \;
         aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text
         find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETREGION/'`aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text`'@g' {} \;
-        #
-        echo "Waiting for stack create complete"
-        until aws cloudformation describe-stacks --stack-name $VPCSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
-        until aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
-
 
     - name: Setup private integration base with broker
       run: |
