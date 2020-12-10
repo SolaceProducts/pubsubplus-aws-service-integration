@@ -1,5 +1,9 @@
 [
     {
+        "ParameterKey": "SolaceDockerImage",
+        "ParameterValue": "TEST_SOLACEDOCKERIMAGE"
+    },
+    {
         "ParameterKey": "AdminPassword",
         "ParameterValue": "admin"
     },    

@@ -53,7 +53,8 @@ jobs:
       run: |
         aws s3 mb s3://$TEST_S3_BUCKET || echo "s3 bucket already existed"
         aws s3 sync . s3://$TEST_S3_BUCKET/$TEST_QSS3KEYPREFIX --acl public-read
-        find ci/ -type f -exec sed -i -e 's/TEST_S3_BUCKET/'$TEST_S3_BUCKET'/g' {} \;
+        find ci/ -type f -exec sed -i -e 's/TEST_SOLACEDOCKERIMAGE/${{ secrets.BROKER_DOCKER_IMAGE_REF }}/g' {} \;
+        find ci/ -type f -exec sed -i -e 's/TEST_QSS3BUCKETNAME/'$TEST_S3_BUCKET'/g' {} \;
         find ci/ -type f -exec sed -i -e 's@TEST_QSS3KEYPREFIX@'$TEST_QSS3KEYPREFIX'@g' {} \;
         aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text
         find ci/ -type f -exec sed -i -e 's/TEST_QSS3BUCKETREGION/'`aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text`'/g' {} \;
