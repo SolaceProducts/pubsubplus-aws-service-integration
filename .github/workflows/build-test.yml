@@ -62,28 +62,28 @@ jobs:
         aws cloudformation create-stack --stack-name $RESOURCESSTACKNAME --template-body file://templates/SetupSampleEnvironment/setup_sample_aws_resources.template  --on-failure DELETE --capabilities  CAPABILITY_NAMED_IAM
         #
         TEST_SNSTOPIC=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestSnsTopic'].OutputValue" --output text`; echo TEST_SNSTOPIC=$TEST_SNSTOPIC
-        find ci/ -type f -exec sed -i -e 's@TEST_SNSTOPIC@'$TEST_SNSTOPIC'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_SNSTOPIC@'$TEST_SNSTOPIC'@g' {} \;
         TEST_SQSQUEUE=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestSqsQueue'].OutputValue" --output text`; echo TEST_SQSQUEUE=$TEST_SQSQUEUE
-        find ci/ -type f -exec sed -i -e 's@TEST_SQSQUEUE@'$TEST_SQSQUEUE'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_SQSQUEUE@'$TEST_SQSQUEUE'@g' {} \;
         TEST_S3BUCKET=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestS3Bucket'].OutputValue" --output text`; echo TEST_S3BUCKET=$TEST_S3BUCKET
-        find ci/ -type f -exec sed -i -e 's@TEST_S3BUCKET@'$TEST_S3BUCKET'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_S3BUCKET@'$TEST_S3BUCKET'@g' {} \;
         TEST_LAMBDA=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestLambda'].OutputValue" --output text`; echo TEST_LAMBDA=$TEST_LAMBDA
-        find ci/ -type f -exec sed -i -e 's@TEST_LAMBDA@'$TEST_LAMBDA'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_LAMBDA@'$TEST_LAMBDA'@g' {} \;
         TEST_VPC=`aws cloudformation describe-stacks --stack-name $VPCSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='VPC'].OutputValue" --output text`; echo TEST_VPC=$TEST_VPC
-        find ci/ -type f -exec sed -i -e 's@TEST_VPC@'$TEST_VPC'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_VPC@'$TEST_VPC'@g' {} \;
         TEST_SUBNET=`aws cloudformation describe-stacks --stack-name $VPCSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='Subnet'].OutputValue" --output text`; echo TEST_SUBNET=$TEST_SUBNET
-        find ci/ -type f -exec sed -i -e 's@TEST_SUBNET@'$TEST_SUBNET'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_SUBNET@'$TEST_SUBNET'@g' {} \;
         TEST_SECURITYGROUP=`aws cloudformation describe-stacks --stack-name $VPCSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='SecurityGroup'].OutputValue" --output text`; echo TEST_SECURITYGROUP=$TEST_SECURITYGROUP
-        find ci/ -type f -exec sed -i -e 's@TEST_SECURITYGROUP@'$TEST_SECURITYGROUP'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_SECURITYGROUP@'$TEST_SECURITYGROUP'@g' {} \;
         TEST_AUTHHEADER_NAME=TtestHeader
-        find ci/ -type f -exec sed -i -e 's@TEST_AUTHHEADER_NAME@'$TEST_AUTHHEADER_NAME'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_AUTHHEADER_NAME@'$TEST_AUTHHEADER_NAME'@g' {} \;
         TEST_AUTHHEADER_VALUE=MyToken
-        find ci/ -type f -exec sed -i -e 's@TEST_AUTHHEADER_VALUE@'$TEST_AUTHHEADER_VALUE'@g' {}
-        find ci/ -type f -exec sed -i -e 's@TEST_SOLACEDOCKERIMAGE@'${{ secrets.BROKER_DOCKER_IMAGE_REF }}'@g' {}
-        find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETNAME@'$TEST_S3_BUCKET'@g' {}
-        find ci/ -type f -exec sed -i -e 's@TEST_QSS3KEYPREFIX@'$TEST_QSS3KEYPREFIX'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_AUTHHEADER_VALUE@'$TEST_AUTHHEADER_VALUE'@g' {} \;
+        find ci/ -type f -exec sed -i -e 's@TEST_SOLACEDOCKERIMAGE@'${{ secrets.BROKER_DOCKER_IMAGE_REF }}'@g' {} \;
+        find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETNAME@'$TEST_S3_BUCKET'@g' {} \;
+        find ci/ -type f -exec sed -i -e 's@TEST_QSS3KEYPREFIX@'$TEST_QSS3KEYPREFIX'@g' {} \;
         aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text
-        find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETREGION/'`aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text`'@g' {}
+        find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETREGION/'`aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text`'@g' {} \;
         #
         echo "Waiting for stack create complete"
         until aws cloudformation describe-stacks --stack-name $VPCSTACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
