@@ -68,6 +68,7 @@ jobs:
         TEST_SNSTOPIC=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestSnsTopic'].OutputValue" --output text`; echo TEST_SNSTOPIC=$TEST_SNSTOPIC
         find ci/ -type f -exec sed -i -e 's@TEST_SNSTOPIC@'$TEST_SNSTOPIC'@g' {} \;
         TEST_SQSQUEUE=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestSqsQueue'].OutputValue" --output text`; echo TEST_SQSQUEUE=$TEST_SQSQUEUE
+        echo "TEST_SQSQUEUE=$TEST_SQSQUEUE" >> $GITHUB_ENV
         find ci/ -type f -exec sed -i -e 's@TEST_SQSQUEUE@'$TEST_SQSQUEUE'@g' {} \;
         TEST_S3BUCKET=`aws cloudformation describe-stacks --stack-name $RESOURCESSTACKNAME --query "Stacks[0].Outputs[?OutputKey=='TestS3Bucket'].OutputValue" --output text`; echo TEST_S3BUCKET=$TEST_S3BUCKET
         find ci/ -type f -exec sed -i -e 's@TEST_S3BUCKET@'$TEST_S3BUCKET'@g' {} \;
