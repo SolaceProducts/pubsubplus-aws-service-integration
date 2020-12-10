@@ -10,6 +10,7 @@ Metadata:
       - Label:
           default: PubSub+ Event Broker Parameters
         Parameters:
+          - SolaceDockerImage
           - AdminPassword
           - KeyPairName
           - NodeInstanceType
@@ -24,6 +25,8 @@ Metadata:
     ParameterLabels:
       VpcId:
         default: VPC Id
+      SolaceDockerImage:
+        default: Broker docker image reference
       AdminPassword:
         default: Broker Admin Password
       KeyPairName:
@@ -44,6 +47,13 @@ Parameters:
   VpcId:
     Description: Id of the VPC (e.g. vpc-0343606e) to be used for the deployment (select from the list)
     Type: 'AWS::EC2::VPC::Id'
+  SolaceDockerImage:
+    Description: >-
+      Solace PubSub+ event broker docker image reference: a docker registry name
+      with optional tag or a download URL. The download URL can be obtained from http://dev.solace.com/downloads/
+      or it can be a url to a remotely hosted load version
+    Default: solace/solace-pubsub-standard:latest
+    Type: String
   AdminPassword:
     Description: Password to access PubSub+ admin console and SEMP
     NoEcho: True
@@ -151,6 +161,7 @@ Resources:
       TemplateURL: !Sub >-
         https://${QSS3BucketName}.s3.amazonaws.com/${QSS3KeyPrefix}/templates/Solace/nodecreate.template
       Parameters:
+        SolaceDockerImage: !Ref SolaceDockerImage
         AdminPassword: !Ref AdminPassword
         KeyPairName: !Ref KeyPairName
         NodeInstanceType: !Ref NodeInstanceType
