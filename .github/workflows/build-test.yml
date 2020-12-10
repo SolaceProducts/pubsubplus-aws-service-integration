@@ -88,7 +88,7 @@ jobs:
 
     - name: Setup private integration base with broker
       run: |
-        export PRIV_INT_BASE_BROKER_STACKNAME="$TESTSTACKNAMEBASE-base-broker"; echo "VPCSTACKNAME=$VPCSTACKNAME" >> $GITHUB_ENV
+        export PRIV_INT_BASE_BROKER_STACKNAME="$TESTSTACKNAMEBASE-base-broker"; echo "PRIV_INT_BASE_BROKER_STACKNAME=$PRIV_INT_BASE_BROKER_STACKNAME" >> $GITHUB_ENV
         aws cloudformation create-stack --stack-name $PRIV_INT_BASE_BROKER_STACKNAME --template-body file://templates/private_proxy_base_and_simple_broker.template --parameters file://ci/private_proxy_base_and_simple_broker_test.json --on-failure DO_NOTHING --capabilities CAPABILITY_NAMED_IAM
 
     - name: Create private SQS, SNS, Lambda and S3 integrations and test them
