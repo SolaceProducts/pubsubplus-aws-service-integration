@@ -53,7 +53,7 @@ jobs:
       run: |
         aws s3 mb s3://$TEST_S3_BUCKET || echo "s3 bucket already existed"
         aws s3 sync . s3://$TEST_S3_BUCKET/$TEST_QSS3KEYPREFIX --acl public-read
-        find ci/ -type f -exec sed -i -e 's/TEST_SOLACEDOCKERIMAGE/${{ secrets.BROKER_DOCKER_IMAGE_REF }}/g' {} \;
+        find ci/ -type f -exec sed -i -e 's/TEST_SOLACEDOCKERIMAGE/'${{ secrets.BROKER_DOCKER_IMAGE_REF }}'/g' {} \;
         find ci/ -type f -exec sed -i -e 's/TEST_QSS3BUCKETNAME/'$TEST_S3_BUCKET'/g' {} \;
         find ci/ -type f -exec sed -i -e 's@TEST_QSS3KEYPREFIX@'$TEST_QSS3KEYPREFIX'@g' {} \;
         aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text
@@ -106,7 +106,6 @@ jobs:
     - name: Wait for all stacks to come up and extract results then finalize integrations by setting up RDPs
       run: |
         until aws cloudformation describe-stacks --stack-name $PRIV_INT_SQS_STACKNAME | grep -m 1 -E 'CREATE_COMPLETE|DELETE_IN_PROGRESS|CREATE_FAILED'; do sleep 10; done
-        #
         PRIV_SQS_PROXYAPISENDURL=`aws cloudformation describe-stacks --stack-name $PRIV_INT_SQS_STACKNAME --query "Stacks[0].Outputs[?OutputKey=='ProxyAPISendUrl'].OutputValue" --output text`; echo PRIV_SQS_PROXYAPISENDURL=$PRIV_SQS_PROXYAPISENDURL
         PRIV_SQS_PROXYAPIRECEIVEURL=`aws cloudformation describe-stacks --stack-name $PRIV_INT_SQS_STACKNAME --query "Stacks[0].Outputs[?OutputKey=='ProxyAPIReceiveUrl'].OutputValue" --output text`; echo PRIV_SQS_PROXYAPIRECEIVEURL=$PRIV_SQS_PROXYAPIRECEIVEURL
         PRIV_SQS_PROXYAPIDELETEURL=`aws cloudformation describe-stacks --stack-name $PRIV_INT_SQS_STACKNAME --query "Stacks[0].Outputs[?OutputKey=='ProxyAPIDeleteUrl'].OutputValue" --output text`; echo PRIV_SQS_PROXYAPIDELETEURL=$PRIV_SQS_PROXYAPIDELETEURL
