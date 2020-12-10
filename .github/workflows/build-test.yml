@@ -89,7 +89,7 @@ jobs:
         find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETNAME@'$TEST_S3_BUCKET'@g' {} \;
         find ci/ -type f -exec sed -i -e 's@TEST_QSS3KEYPREFIX@'$TEST_QSS3KEYPREFIX'@g' {} \;
         aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text
-        find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETREGION/'`aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text`'@g' {} \;
+        find ci/ -type f -exec sed -i -e 's@TEST_QSS3BUCKETREGION@'`aws s3api get-bucket-location --bucket $TEST_S3_BUCKET --output text`'@g' {} \;
 
     - name: Setup private integration base with broker
       run: |
