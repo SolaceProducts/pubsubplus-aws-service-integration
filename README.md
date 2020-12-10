@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SolaceProducts/pubsubplus-aws-service-integration.svg?branch=master)](https://travis-ci.org/SolaceProducts/pubsubplus-aws-service-integration)
+[![Actions Status](https://github.com/SolaceProducts/pubsubplus-aws-service-integration/workflows/build/badge.svg?branch=master)](https://github.com/SolaceProducts/pubsubplus-aws-service-integration/actions?query=workflow%3Abuild+branch%3Amaster)
 
 # PubSub+ and AWS Services Integration
 
