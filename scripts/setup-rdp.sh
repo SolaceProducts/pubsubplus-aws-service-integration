@@ -155,21 +155,14 @@ function semp_query {
 }
 ##
 #
-# Setting up aws trusted root
-echo "`date` INFO: Setting up aws trusted root (may report fail if already setup)"
+# Fixing message VPN certificate depth
+echo "`date` INFO: Fixing message VPN certificate depth"
 online_results=$(semp_query ${ADMIN_USERNAME} ${ADMIN_PASSWORD} ${BROKER_SEMP_URL}/SEMP \
-    "<rpc><authentication><create><certificate-authority><ca-name>aws</ca-name></certificate-authority></create></authentication></rpc>" \
+    "<?xml version="1.0"?>
+<rpc><message-vpn><vpn-name>${BROKER_MESSAGE_VPN}</vpn-name><rest><ssl><server-certificate-validation><max-certificate-chain-depth><max-depth>4</max-depth></max-certificate-chain-depth></server-certificate-validation></ssl></rest></message-vpn></rpc>" \
     "/rpc-reply/execute-result/@code")
-ca_created=`echo ${online_results} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
-echo "`date` INFO: certificate-authority created status: ${ca_created}" 
-
-wget -q -O ./AmazonRootCA1.pem -nv https://www.amazontrust.com/repository/AmazonRootCA1.pem
-online_results=$(semp_query ${ADMIN_USERNAME} ${ADMIN_PASSWORD} ${BROKER_SEMP_URL}/SEMP \
-    "<rpc><authentication><certificate-authority><ca-name>aws</ca-name><certificate><raw-data>`awk '{printf \"%s\\n\", $0}' AmazonRootCA1.pem`</raw-data></certificate></certificate-authority></authentication></rpc>" \
-    "/rpc-reply/execute-result/@code")
-ca_loaded=`echo ${online_results} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
-echo "`date` INFO: certificate-authority file loaded status: ${ca_loaded}"
-rm -f ./AmazonRootCA1.pem
+ca_depth_fixed=`echo ${online_results} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
+echo "`date` INFO: certificate-authority max-certificate-chain-depth fixed status: ${ca_depth_fixed}" 
 #
 # Setting up PubSub+ Queue
 echo "`date` INFO: Setting up PubSub+ Queue"
