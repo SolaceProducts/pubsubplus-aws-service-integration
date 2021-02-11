@@ -277,8 +277,6 @@ Step 1: For each public resource integration, [set up a public resource integrat
 
 ### Deployment Step Details
 
-> **Important:** AWS is currently using a server certificate with certificate chain depth larger than 3. The default PubSub+ [broker settings for accepted certificate chain depth for REST consumers of the message-vpn used](https://docs.solace.com/Solace-CLI/CLI-Reference/VMR_CLI_Commands.html#Root_enable_configure_message-vpn_rest_ssl_server-certificate-validation_max-certificate-chain-depth) is 3. It must be ensured that this setting is updated to at least 4 through the [CLI](https://docs.solace.com/Solace-CLI/Using-Solace-CLI.htm), [SEMP API](https://docs.solace.com/SEMP/Using-SEMP.htm) or [PubSub+ Broker Manager](https://docs.solace.com/Solace-PubSub-Manager/PubSub-Manager-Overview.htm). The [`setup-rdp.sh` script in this quick start](#step-4-configure-the-broker) includes a step to take care of this.
-
 #### Setting up a private integration base with an existing event broker
 
 * Use the `private_proxy_base.template`.
@@ -521,7 +519,9 @@ Once the message has been published to the queue, let's check the target S3 buck
 
 ## Troubleshooting Hints
 
-* First ensure that the API Gateway has been setup properly and can reach the target resource internally. Use the AWS "API Gateway" Service console and navigate to the method to be checked, then confirm proper data flow using the "TEST" feature.
+* AWS is currently using a server certificate with certificate chain depth larger than 3. The default PubSub+ [broker settings for accepted certificate chain depth for REST consumers of the message-vpn used](https://docs.solace.com/Solace-CLI/CLI-Reference/VMR_CLI_Commands.html#Root_enable_configure_message-vpn_rest_ssl_server-certificate-validation_max-certificate-chain-depth) is 3. It must be ensured that this setting is updated to at least 4 through the [CLI](https://docs.solace.com/Solace-CLI/Using-Solace-CLI.htm), [SEMP API](https://docs.solace.com/SEMP/Using-SEMP.htm) or [PubSub+ Broker Manager](https://docs.solace.com/Solace-PubSub-Manager/PubSub-Manager-Overview.htm). The [`setup-rdp.sh` script in this quick start](#step-4-configure-the-broker) includes a step to take care of this.
+
+* As part of investigating connectivity issues, ensure that the API Gateway has been setup properly and can reach the target resource internally. Use the AWS "API Gateway" Service console and navigate to the method to be checked, then confirm proper data flow using the "TEST" feature.
 
 ![API Gateway Testing](images/DebugAPI.png)
 
