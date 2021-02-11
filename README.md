@@ -2,7 +2,9 @@
 
 # PubSub+ and AWS Services Integration
 
-This project provides a simple, secure no-code integration of [AWS services](https://aws.amazon.com ) including [SNS](https://aws.amazon.com/sns ), [SQS](https://aws.amazon.com/sqs ), [Lambda](https://aws.amazon.com/lambda ) and [S3](https://aws.amazon.com/s3 ) into the [Solace PubSub+ Event Mesh](https://solace.com/use-cases/event-mesh ), so AWS services become seamless event mesh consumers and producers.
+This project is a best practice template intended for development and demo purposes. The tested and recommended Solace PubSub+ Software Event Broker version is 9.8.
+
+This document provides a simple, secure no-code integration of [AWS services](https://aws.amazon.com ) including [SNS](https://aws.amazon.com/sns ), [SQS](https://aws.amazon.com/sqs ), [Lambda](https://aws.amazon.com/lambda ) and [S3](https://aws.amazon.com/s3 ) into the [Solace PubSub+ Event Mesh](https://solace.com/use-cases/event-mesh ), so AWS services become seamless event mesh consumers and producers.
 
 Contents:
 
@@ -274,6 +276,8 @@ The following step creates a service integration with an existing PubSub+ Event 
 Step 1: For each public resource integration, [set up a public resource integration](#setting-up-a-public-resource-integration).
 
 ### Deployment Step Details
+
+**Important:** AWS is currently using a server certificate with certificate chain depth larger than 3. The default PubSub+ [broker settings for accepted certificate chain depth for REST Delivery Points of the message-vpn used](https://docs.solace.com/Solace-CLI/CLI-Reference/VMR_CLI_Commands.html#Root_enable_configure_message-vpn_rest_ssl_server-certificate-validation_max-certificate-chain-depth) is 3. It must be ensured that this setting is updated to at least 4 through the [CLI](https://docs.solace.com/Solace-CLI/Using-Solace-CLI.htm), [SEMP API](https://docs.solace.com/SEMP/Using-SEMP.htm) or [PubSub+ Broker Manager](https://docs.solace.com/Solace-PubSub-Manager/PubSub-Manager-Overview.htm). The [`setup-rdp.sh` script in this quick start](#step-4-configure-the-broker) includes a step to take care of this.
 
 #### Setting up a private integration base with an existing event broker
 
