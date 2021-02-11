@@ -157,12 +157,11 @@ function semp_query {
 #
 # Fixing message VPN certificate depth
 echo "`date` INFO: Fixing message VPN certificate depth"
-online_results=$(semp_query ${ADMIN_USERNAME} ${ADMIN_PASSWORD} ${BROKER_SEMP_URL}/SEMP \
-    "<?xml version="1.0"?>
-<rpc><message-vpn><vpn-name>${BROKER_MESSAGE_VPN}</vpn-name><rest><ssl><server-certificate-validation><max-certificate-chain-depth><max-depth>4</max-depth></max-certificate-chain-depth></server-certificate-validation></ssl></rest></message-vpn></rpc>" \
-    "/rpc-reply/execute-result/@code")
-ca_depth_fixed=`echo ${online_results} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
-echo "`date` INFO: certificate-authority max-certificate-chain-depth fixed status: ${ca_depth_fixed}" 
+curl --user ${ADMIN_USERNAME}:${ADMIN_PASSWORD} \
+     --request PATCH \
+     --header "content-type:application/json" \
+     --data "{\"msgVpnName\":\"${BROKER_MESSAGE_VPN}\",\"restTlsServerCertMaxChainDepth\":5}" \
+     "${BROKER_SEMP_URL}/SEMP/v2/config/msgVpns/${BROKER_MESSAGE_VPN}"
 #
 # Setting up PubSub+ Queue
 echo "`date` INFO: Setting up PubSub+ Queue"
