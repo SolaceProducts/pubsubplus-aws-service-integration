@@ -277,7 +277,7 @@ Step 1: For each public resource integration, [set up a public resource integrat
 
 ### Deployment Step Details
 
-**Important:** AWS is currently using a server certificate with certificate chain depth larger than 3. The default PubSub+ [broker settings for accepted certificate chain depth for REST Delivery Points of the message-vpn used](https://docs.solace.com/Solace-CLI/CLI-Reference/VMR_CLI_Commands.html#Root_enable_configure_message-vpn_rest_ssl_server-certificate-validation_max-certificate-chain-depth) is 3. It must be ensured that this setting is updated to at least 4 through the [CLI](https://docs.solace.com/Solace-CLI/Using-Solace-CLI.htm), [SEMP API](https://docs.solace.com/SEMP/Using-SEMP.htm) or [PubSub+ Broker Manager](https://docs.solace.com/Solace-PubSub-Manager/PubSub-Manager-Overview.htm). The [`setup-rdp.sh` script in this quick start](#step-4-configure-the-broker) includes a step to take care of this.
+> **Important:** AWS is currently using a server certificate with certificate chain depth larger than 3. The default PubSub+ [broker settings for accepted certificate chain depth for REST consumers of the message-vpn used](https://docs.solace.com/Solace-CLI/CLI-Reference/VMR_CLI_Commands.html#Root_enable_configure_message-vpn_rest_ssl_server-certificate-validation_max-certificate-chain-depth) is 3. It must be ensured that this setting is updated to at least 4 through the [CLI](https://docs.solace.com/Solace-CLI/Using-Solace-CLI.htm), [SEMP API](https://docs.solace.com/SEMP/Using-SEMP.htm) or [PubSub+ Broker Manager](https://docs.solace.com/Solace-PubSub-Manager/PubSub-Manager-Overview.htm). The [`setup-rdp.sh` script in this quick start](#step-4-configure-the-broker) includes a step to take care of this.
 
 #### Setting up a private integration base with an existing event broker
 
@@ -476,7 +476,7 @@ Select S3 as the resource, and provide the S3 resource ARN and the VPC Id from [
 
 The output of the template will provide the REST API URL that can be used to send data to the S3 resource.
 
-![Sample Base](images/SampleBase.png)
+![Sample Base](images/SamplePrivIntegration.png)
 
 #### Step 4: Configure the broker
 
