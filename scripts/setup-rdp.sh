@@ -106,70 +106,15 @@ echo
 IFS='/' read -r protocol empty baseUrl apiStage apiPath <<< "$INTEGRATION_API_URL"
 IFS='.' read -r gwId apiRegionUrl <<< "$baseUrl"
 #
-## Functions
-function semp_query {
-  # Variables:
-  count_search=""
-  name=$1
-  password=$2
-  url=$3
-  query=$4
-  value_search=$5
-  script_name="semp_query"
-  verbose=0
-
-  if [[ ${url} = "" || ${name} = "" || ${password} = "" || ${query} = "" ]]; then
-    echo "`date` ERROR: url, name, password and query are madatory fields" >&2
-    echo  '<returnInfo><errorInfo>missing parameter</errorInfo></returnInfo>'
-    exit 1
-  fi
-  if [ `curl --write-out '%{http_code}' --silent --output /dev/null -u ${name}:${password} ${url} -d "<rpc><show><version/></show></rpc>"` != "200" ] ; then
-    echo  "<returnInfo><errorInfo>management host is not responding</errorInfo></returnInfo>"
-    exit 1
-  fi
-  query_response=`curl -sS -u ${name}:${password} ${url} -d "${query}"`
-  # Validate first char of response is "<", otherwise no hope of being valid xml
-  if [[ ${query_response:0:1} != "<" ]] ; then
-    echo  "<returnInfo><errorInfo>no valid xml returned</errorInfo></returnInfo>"
-    exit 1
-  fi
-  query_response_code=`echo $query_response | xmllint -xpath 'string(/rpc-reply/execute-result/@code)' -`
-
-  if [[ -z ${query_response_code} && ${query_response_code} != "ok" ]]; then
-      echo  "<returnInfo><errorInfo>query failed -${query_response_code}-</errorInfo></returnInfo>"
-      exit 1
-  fi
-  #echo "`date` INFO: query passed ${query_response_code}" >&2
-  if [[ ! -z $value_search ]]; then
-      value_result=`echo $query_response | xmllint -xpath "string($value_search)" -`
-      echo  "<returnInfo><errorInfo></errorInfo><valueSearchResult>${value_result}</valueSearchResult></returnInfo>"
-      exit 0
-  fi
-  if [[ ! -z $count_search ]]; then
-      count_line=`echo $query_response | xmllint -xpath "$count_search" -`
-      count_string=`echo $count_search | cut -d '"' -f 2`
-      count_result=`echo ${count_line} | tr "><" "\n" | grep -c ${count_string}`
-      echo  "<returnInfo><errorInfo></errorInfo><countSearchResult>${count_result}</countSearchResult></returnInfo>"
-      exit 0
-  fi
-}
-##
+## Config steps
 #
-# Setting up aws trusted root
-echo "`date` INFO: Setting up aws trusted root (may report fail if already setup)"
-online_results=$(semp_query ${ADMIN_USERNAME} ${ADMIN_PASSWORD} ${BROKER_SEMP_URL}/SEMP \
-    "<rpc><authentication><create><certificate-authority><ca-name>aws</ca-name></certificate-authority></create></authentication></rpc>" \
-    "/rpc-reply/execute-result/@code")
-ca_created=`echo ${online_results} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
-echo "`date` INFO: certificate-authority created status: ${ca_created}" 
-
-wget -q -O ./AmazonRootCA1.pem -nv https://www.amazontrust.com/repository/AmazonRootCA1.pem
-online_results=$(semp_query ${ADMIN_USERNAME} ${ADMIN_PASSWORD} ${BROKER_SEMP_URL}/SEMP \
-    "<rpc><authentication><certificate-authority><ca-name>aws</ca-name><certificate><raw-data>`awk '{printf \"%s\\n\", $0}' AmazonRootCA1.pem`</raw-data></certificate></certificate-authority></authentication></rpc>" \
-    "/rpc-reply/execute-result/@code")
-ca_loaded=`echo ${online_results} | xmllint -xpath "string(returnInfo/valueSearchResult)" -`
-echo "`date` INFO: certificate-authority file loaded status: ${ca_loaded}"
-rm -f ./AmazonRootCA1.pem
+# Fixing message VPN certificate depth
+echo "`date` INFO: Fixing message VPN certificate depth"
+curl --user ${ADMIN_USERNAME}:${ADMIN_PASSWORD} \
+     --request PATCH \
+     --header "content-type:application/json" \
+     --data "{\"msgVpnName\":\"${BROKER_MESSAGE_VPN}\",\"restTlsServerCertMaxChainDepth\":4}" \
+     "${BROKER_SEMP_URL}/SEMP/v2/config/msgVpns/${BROKER_MESSAGE_VPN}"
 #
 # Setting up PubSub+ Queue
 echo "`date` INFO: Setting up PubSub+ Queue"
